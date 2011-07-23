@@ -1,0 +1,1265 @@
+create schema hidden;
+revoke all on schema hidden from public;
+
+create table hidden.privileges (
+    privilege_id	integer not null,
+    privilege_name	varchar(80) not null
+);
+alter table hidden.privileges add constraint privilege__pk
+    primary key(privilege_id);
+
+
+create table hidden.roles (
+    role_id	integer not null,
+    role_name	varchar(80) not null
+);
+alter table hidden.roles add constraint role__pk
+    primary key(role_id);
+
+
+create table hidden.role_privileges (
+    role_id		integer not null,
+    privilege_id	integer not null
+);
+
+alter table hidden.role_privileges add constraint role_privilege__pk
+    primary key(role_id, privilege_id);
+
+alter table hidden.role_privileges add constraint role_privilege__role_fk
+    foreign key(role_id)
+    references hidden.roles(role_id);
+
+alter table hidden.role_privileges add constraint role_privilege__priv_fk
+    foreign key(privilege_id)
+    references hidden.privileges(privilege_id);
+
+create table hidden.role_roles (
+    role_id		integer not null,
+    has_role_id		integer not null
+);
+
+alter table hidden.role_roles add constraint role_role__pk
+    primary key(role_id, has_role_id);
+
+alter table hidden.role_roles add constraint role_role__role_fk
+    foreign key(role_id)
+    references hidden.roles(role_id);
+
+alter table hidden.role_roles add constraint role_role__has_role_fk
+    foreign key(has_role_id)
+    references hidden.roles(role_id);
+
+
+create sequence person_id_seq;
+create table hidden.persons (
+    person_id		integer not null,
+    person_name		varchar(80) not null
+);
+alter table hidden.persons add constraint person__pk
+    primary key(person_id);
+
+
+create sequence project_id_seq;
+create table hidden.projects (
+    project_id		integer not null,
+    project_name	varchar(80) not null
+);
+alter table hidden.projects add constraint project__pk
+    primary key(project_id);
+
+
+create table hidden.detail_types (
+    detail_type_id	  integer not null,
+    required_privilege_id integer not null,
+    detail_type_name	  varchar(80) not null
+);
+alter table hidden.detail_types add constraint detail_type__pk
+    primary key(detail_type_id);
+
+alter table hidden.detail_types add constraint detail_type__priv_fk
+    foreign key(required_privilege_id)
+    references hidden.privileges(privilege_id);
+
+
+create table hidden.assignments (
+    project_id		integer not null,
+    person_id		integer not null,
+    role_id		integer not null
+);
+alter table hidden.assignments add constraint assignment__pk
+    primary key(project_id, person_id);
+
+alter table hidden.assignments add constraint assignment__project_fk
+    foreign key(project_id)
+    references hidden.projects(project_id);
+
+alter table hidden.assignments add constraint assignment__person_fk
+    foreign key(person_id)
+    references hidden.persons(person_id);
+
+alter table hidden.assignments add constraint assignment__role_fk
+    foreign key(role_id)
+    references hidden.roles(role_id);
+
+
+create table hidden.person_roles (
+    person_id		integer not null,
+    role_id		integer not null
+);
+alter table hidden.person_roles add constraint person_role__pk
+    primary key(person_id, role_id);
+
+alter table hidden.person_roles add constraint person_role__person_fk
+    foreign key(person_id)
+    references hidden.persons(person_id);
+
+alter table hidden.person_roles add constraint person_role__role_fk
+    foreign key(role_id)
+    references hidden.roles(role_id);
+
+
+create table hidden.project_details (
+    project_id		integer not null,
+    detail_type_id	integer not null,
+    value		text not null
+);
+alter table hidden.project_details add constraint project_detail__pk
+    primary key(project_id, detail_type_id);
+
+alter table hidden.project_details add constraint project_detail__project_fk
+    foreign key(project_id)
+    references hidden.projects(project_id);
+
+alter table hidden.project_details add constraint project_detail__detail_fk
+    foreign key(detail_type_id)
+    references hidden.detail_types(detail_type_id);
+
+
+create table hidden.person_details (
+    person_id		integer not null,
+    detail_type_id	integer not null,
+    value		text not null
+);
+alter table hidden.person_details add constraint person_detail__pk
+    primary key(person_id, detail_type_id);
+
+alter table hidden.person_details add constraint person_detail__person_fk
+    foreign key(person_id)
+    references hidden.persons(person_id);
+
+alter table hidden.person_details add constraint person_detail__detail_fk
+    foreign key(detail_type_id)
+    references hidden.detail_types(detail_type_id);
+
+
+insert into hidden.privileges (privilege_id, privilege_name) values
+(10001,	'select_privileges'),
+(10002,	'insert_privileges'),
+(10003,	'update_privileges'),
+(10004,	'delete_privileges'),
+(10005,	'select_roles'),
+(10006,	'insert_roles'),
+(10007,	'update_roles'),
+(10008,	'delete_roles'),
+(10009,	'select_role_privileges'),
+(10010,	'insert_role_privileges'),
+(10011,	'update_role_privileges'),
+(10012,	'delete_role_privileges'),
+(10013,	'select_persons'),
+(10014,	'insert_persons'),
+(10015,	'update_persons'),
+(10016,	'delete_persons'),
+(10017,	'select_projects'),
+(10018,	'insert_projects'),
+(10019,	'update_projects'),
+(10020,	'delete_projects'),
+(10021,	'select_detail_types'),
+(10022,	'insert_detail_types'),
+(10023,	'update_detail_types'),
+(10024,	'delete_detail_types'),
+(10025,	'select_assignments'),
+(10026,	'insert_assignments'),
+(10027,	'update_assignments'),
+(10028,	'delete_assignments'),
+(10029,	'select_person_roles'),
+(10030,	'insert_person_roles'),
+(10031,	'update_person_roles'),
+(10032,	'delete_person_roles'),
+(10033,	'select_project_details'),
+(10034,	'insert_project_details'),
+(10035,	'update_project_details'),
+(10036,	'delete_project_details'),
+(10037,	'select_person_details'),
+(10038,	'insert_person_details'),
+(10039,	'update_person_details'),
+(10040,	'delete_person_details'),
+(10041,	'select_role_roles'),
+(10042,	'insert_role_roles'),
+(10043,	'update_role_roles'),
+(10044,	'delete_role_roles'),
+(10100,	'can_connect'),
+(10150,	'view_basic'),
+(10151,	'view_personal'),
+(10152,	'view_personal_secure'),
+(10153,	'view_project_confidential');
+
+insert into hidden.roles (role_id, role_name) values
+(11001,	'DBA'),
+(11002,	'Personal Context'),
+(11003,	'Employee'),
+(11004,	'Worker'),
+(11005,	'Project Manager'),
+(11006,	'Director'),
+(11007,	'Manager');
+
+-- DBA can do anything (but is not automatically an employee)
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11001, privilege_id
+from   hidden.privileges
+where  privilege_id != 10100;
+
+-- Personal Context allows update of personal details
+insert into hidden.role_privileges (role_id, privilege_id) values
+(11002,	10013),
+(11002,	10015),
+(11002,	10025),
+(11002,	10029),
+(11002,	10037),
+(11002,	10038),
+(11002,	10039),
+(11002,	10040),
+(11002,	10150),
+(11002,	10151),
+(11002,	10152);
+
+-- Basic Access can see lookup data
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11003, privilege_id
+from   hidden.privileges
+where  privilege_name in ('select_privileges', 'select_roles',
+			  'select_role_privileges', 'select_detail_types');
+
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11003, 10100;
+
+-- Workers can modify project info
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11004, privilege_id
+from   hidden.privileges
+where  privilege_name like '%project%'
+and    privilege_name not like 'delete%'
+and    privilege_name not like '%confidential';
+
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11004, 10025;
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11004, 10150;
+
+-- Project Manager can do anything to project info and can see personal info
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11005, privilege_id
+from   hidden.privileges
+where  privilege_name like '%project%'
+or     privilege_name like '%assignment%';
+
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11005, privilege_id
+from   hidden.privileges
+where  privilege_name like 'select_person%';
+
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11005, 10150;
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11005, 10151;
+
+-- Director can do anything except modify personal details
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11006, privilege_id
+from   hidden.privileges
+where  privilege_name not like '%person%';
+
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11006, privilege_id
+from   hidden.privileges
+where  privilege_name like 'select_person%';
+
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11006, 10014;
+
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11006, 10151;
+
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11006, 10152;
+
+-- Manager can see personal info
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11007, privilege_id
+from   hidden.privileges
+where  privilege_name like 'select_person%';
+
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11007, 10150;
+insert into hidden.role_privileges (role_id, privilege_id)
+select 11007, 10151;
+
+
+insert into hidden.persons (person_id, person_name) values
+(1, 'Deb (the DBA)'),
+(2, 'Pat (the PM)'),
+(3, 'Derick (the director)'),
+(4, 'Will (the worker)'),
+(5, 'Wilma (the worker)'),
+(6, 'Fred (the fired DBA)');
+
+insert into hidden.person_roles (person_id, role_id) values
+(1, 11001),
+(1, 11003),
+(2, 11003),
+(2, 11007),
+(3, 11003),
+(3, 11006),
+(4, 11003),
+(5, 11003),
+(6, 11001);
+
+insert into hidden.projects (project_id, project_name) values
+(101, 'Secret Project'),
+(102, 'Public project');
+
+insert into hidden.assignments (project_id, person_id, role_id) values
+(101, 3, 11005),
+(101, 5, 11004),
+(102, 2, 11005),
+(102, 4, 11004),
+(102, 5, 11004);
+
+insert into hidden.detail_types (detail_type_id, required_privilege_id, 
+                   detail_type_name) values
+(1001, 10150, 'start_date'),
+(1002, 10150, 'status'),
+(1003, 10150, 'join_date'),
+(1004, 10152, 'salary'),
+(1005, 10151, 'date of birth'),
+(1006, 10152, 'sin'),
+(1007, 10150, 'skills'),
+(1008, 10153, 'contract value');
+
+insert into hidden.person_details (person_id, detail_type_id, value) values
+(1, 1003, '20050102'),
+(2, 1003, '20050103'),
+(3, 1003, '20050104'),
+(4, 1003, '20050105'),
+(5, 1003, '20050106'),
+(6, 1003, '20050107'),
+(1, 1002, 'Employee'),
+(2, 1002, 'Employee'),
+(3, 1002, 'Employee'),
+(4, 1002, 'Employee'),
+(5, 1002, 'Employee'),
+(6, 1002, 'Terminated'),
+(1, 1004, '50,000'),
+(2, 1004, '50,000'),
+(3, 1004, '80,000'),
+(4, 1004, '30,000'),
+(5, 1004, '30,000'),
+(6, 1004, '40,000'),
+(1, 1005, '19610102'),
+(2, 1005, '19600102'),
+(3, 1005, '19650102'),
+(4, 1005, '19660102'),
+(5, 1005, '19670102'),
+(1, 1006, '123456789'),
+(2, 1006, '123456789'),
+(3, 1006, '123456789'),
+(4, 1006, '123456789'),
+(5, 1006, '123456789'),
+(1, 1007, 'Oracle, C, SQL'),
+(2, 1007, 'Soft peoply-stuff'),
+(3, 1007, 'None at all'),
+(4, 1007, 'Subservience'),
+(5, 1007, 'Subservience');
+
+
+insert into hidden.project_details (project_id, detail_type_id, value) values
+(101, 1001, '20050101'),
+(101, 1002, 'Secretly ongoing'),
+(101, 1008, '$800,000'),
+(102, 1001, '20050101'),
+(102, 1002, 'Ongoing'),
+(102, 1008, '$100,000');
+
+
+-- Veil Variables:
+--   Shared:
+--     privs_range Range The range of privilege_id in the privileges table
+--     roles_range Range The range of role_id in the roles table
+--     role_privs Bitmap Array Array of privilege bitmaps indexed by role_id
+--     det_types_range Range The range of detail_type_id in detail_types
+--     det_types_privs Int4Array Mapping of detail_type_id to the privilege
+--       required to access details of that type
+--     
+--   Session:
+--     person_id Int4 The id of the currently connected person
+--     global_context Bitmap The global privileges of the connected person
+--     project_context Bitmap Hash Hash of privilege bitmaps, indexed by
+--       project_id, giving the connected person's project privileges.
+--
+-- Security Contexts:
+--   Global
+--     Privileges are identified in variable global_context
+--   Personal
+--     Privileges are identified in role_privs[11002].
+--   Project
+--     A relational context.  Privileges are identified in
+--     project_context[project_id].
+
+-- Replacement for default version of veil_init.
+-- Initialise and load all shared variables.
+--
+create or replace
+function veil_init(bool) returns bool as '
+declare
+    doing_reset alias for $1;
+    exists_privs_range bool;
+    exists_roles_range bool;
+    exists_role_privs  bool;
+    exists_det_types_range bool;
+    exists_det_types_privs bool;
+    init_reqd bool;
+    dummy     bool;
+    dummy2    bool;
+    dummyint  int4;
+    _count    int4;
+begin
+    -- Declare all shared variables.
+
+    select into exists_privs_range, exists_roles_range,
+		exists_role_privs, exists_det_types_range,
+		exists_det_types_privs
+           veil_share(''privs_range''), veil_share(''roles_range''),
+	   veil_share(''role_privs''), veil_share(''det_types_range''),
+	   veil_share(''det_types_privs'');
+
+    init_reqd = not (exists_privs_range and exists_role_privs and
+		     exists_role_privs and exists_det_types_range and
+		     exists_det_types_privs);
+
+    if init_reqd or doing_reset then
+    	-- Load ranges for privs and roles.
+    	select into dummyint
+    	       veil_init_range(''roles_range'', min(role_id), max(role_id))
+    	from   hidden.roles;
+
+    	select into dummyint
+    	       veil_init_range(''privs_range'', min(privilege_id), 
+    				  max(privilege_id))
+    	from   hidden.privileges;
+
+	-- Load range for detail_types
+    	select into dummyint
+    	       veil_init_range(''det_types_range'', 
+	       		       min(detail_type_id), max(detail_type_id))
+    	from   hidden.detail_types;
+
+	-- Initialise array of required privs for detail_types
+    	select into dummy
+    	       veil_init_int4array(''det_types_privs'', ''det_types_range'');
+    	select into _count
+    	       count(veil_int4array_set(''det_types_privs'', 
+	       		                detail_type_id, required_privilege_id))
+    	from   hidden.detail_types;
+
+    	-- Initialise role_privs bitmap_array
+    	select into dummy
+    		   veil_init_bitmap_array(''role_privs'', ''roles_range'', 
+    					 ''privs_range'');
+
+    	-- Populate role_privs bitmap_array
+    	select into _count
+    		   count(veil_bitmap_array_setbit(''role_privs'', 
+    						 role_id, privilege_id))
+    	from   hidden.role_privileges;
+
+    end if;
+
+    -- Declare important session variables, so that we do not 
+    -- get odd, undefined variable, error messages.
+    select into dummyint, dummy, dummy2
+	   veil_int4_set(''person_id'',  null),
+	   veil_init_bitmap(''global_context'', ''privs_range''),
+	   veil_init_bitmap_hash(''project_context'', ''privs_range'');
+
+    return true;		        
+end;
+' language plpgsql
+stable 
+security definer;
+
+revoke execute on function veil_init(bool) from public;
+
+
+create or replace
+function connect_person(int4) returns bool as '
+declare
+    _person_id alias for $1;
+    dummy    int4;
+    _connect bool;
+    proj_roles record;
+    last_proj int4;
+    first_rec bool;
+begin
+    -- In reality this function would require some authentication token such 
+    -- as a password.  This is just a dumb demo version.
+
+    select into _connect disconnect_person();
+
+    -- Test whether provided person exists.  This is where we would, in a
+    -- real version, do proper authentication.
+    select into dummy 1
+    from   hidden.persons
+    where  person_id = _person_id;
+
+    if found then
+	-- The person exists and passes authentication
+
+	-- From the persons roles set the global_context bitmap.
+	select into dummy
+	       count(veil_union_from_bitmap_array(''global_context'',
+						  ''role_privs'', role_id))
+	from   hidden.person_roles
+	where  person_id = _person_id;
+
+	-- Check that user has can_connect privilege
+	select into _connect
+	    veil_bitmap_testbit(''global_context'', 10100);
+
+	if not _connect then
+	    select into _connect disconnect_person();
+	    return false;
+	end if;
+
+
+	-- From the persons assignments set the project_context bitmap hash.
+	select into dummy
+	       count(veil_union_into_bitmap_hash(''project_context'',
+			project_id::text,
+			veil_bitmap_from_array(''scratch_bitmap'',
+					       ''role_privs'', role_id)))
+	from   hidden.assignments
+	where  person_id = _person_id;
+
+	-- Finally, record the person_id for the connection.
+	select into dummy veil_int4_set(''person_id'', _person_id);
+
+	return true;
+    else
+	return false;
+    end if;
+
+end;
+' language plpgsql
+stable 
+security definer;
+
+create or replace
+function disconnect_person() returns bool as '
+declare
+    dummy int4;
+    dummy2 bool;
+    dummy3 bool;
+begin
+    -- Clear session bitmaps, and reset the person_id
+    select into dummy, dummy2, dummy3
+	   veil_int4_set(''person_id'', null),
+	   veil_init_bitmap(''global_context'', ''privs_range''),
+	   veil_init_bitmap_hash(''project_context'', ''privs_range'');
+    return false;
+end;
+' language plpgsql
+stable 
+security definer;
+
+
+create or replace
+function i_have_global_priv(int4) returns bool as '
+declare
+    priv_id alias for $1;
+    connection_id int4;
+    result bool;
+begin
+    select into connection_id, result 
+           veil_int4_get(''person_id''), 
+           veil_bitmap_testbit(''global_context'', priv_id);
+    if connection_id is null then
+	return false;
+    else
+        return result;
+    end if;
+end;
+' language plpgsql
+stable 
+security definer;
+
+
+create or replace
+function i_have_personal_priv(int4, int4) returns bool as '
+declare
+    priv_id alias for $1;
+    person_id alias for $2;
+    connection_id int4;
+    result bool;
+begin
+    select into connection_id, result 
+           veil_int4_get(''person_id''), 
+           veil_bitmap_testbit(''global_context'', priv_id);
+    if connection_id is null then
+	-- No-one is connected
+	return false;
+    else
+	if result then
+	    -- We have the required privilege in global context.  No need
+	    -- to check any further
+	    return true;
+	else
+	    if person_id = connection_id then
+		-- We are connected as the owner of this record.  Check
+		-- whether we have the required privilege in personal 
+		-- context.
+		select into result
+	               veil_bitmap_array_testbit(''role_privs'', 
+					        11002, priv_id);
+		return result;
+	    else
+		-- We have no personal context rights to this record
+		return false;
+	    end if;
+	end if;
+    end if;
+end;
+' language plpgsql
+stable 
+security definer;
+
+
+create or replace
+function i_have_project_priv(int4, int4) returns bool as '
+declare
+    priv_id alias for $1;
+    project_id alias for $2;
+    connection_id int4;
+    result bool;
+begin
+    select into connection_id, result 
+           veil_int4_get(''person_id''), 
+           veil_bitmap_testbit(''global_context'', priv_id);
+    if connection_id is null then
+	-- No-one is connected
+	return false;
+    else
+	if result then
+	    -- We have the required privilege in global context.  No need
+	    -- to check any further
+	    return true;
+	else
+	    select into result
+	    	veil_bitmap_hash_testbit(''project_context'', 
+				         project_id::text, priv_id);
+	    return result;
+	end if;
+    end if;
+end;
+' language plpgsql
+stable 
+security definer;
+
+
+create or replace
+function i_have_proj_or_pers_priv(int4, int4, int4) returns bool as '
+declare
+    priv_id alias for $1;
+    project_id alias for $2;
+    person_id alias for $3;
+    connection_id int4;
+    result bool;
+begin
+    select into connection_id, result 
+           veil_int4_get(''person_id''), 
+           veil_bitmap_testbit(''global_context'', priv_id);
+    if connection_id is null then
+	-- No-one is connected
+	return false;
+    else
+	if result then
+	    -- We have the required privilege in global context.  No need
+	    -- to check any further
+	    return true;
+	else
+	    if person_id = connection_id then
+		-- We are connected as the owner of this record.  Check
+		-- whether we have the required privilege in personal 
+		-- context.
+		select into result
+	               veil_bitmap_array_testbit(''role_privs'', 
+					        11002, priv_id);
+		return result;
+	    end if;
+	    select into result
+	    	veil_bitmap_hash_testbit(''project_context'', 
+				         project_id::text, priv_id);
+	    return result;
+		-- We have no personal context rights to this record
+		-- so check project context
+		return false;
+	end if;
+    end if;
+end;
+' language plpgsql
+stable 
+security definer;
+
+create or replace
+function i_have_project_detail_priv(int4, int4) returns bool as '
+declare
+    result bool;
+    detail_id alias for $1;
+    proj_id alias for $2;
+begin
+    select into result 
+        i_have_project_priv(veil_int4array_get(''det_types_privs'', detail_id),
+			    proj_id);
+    return result;
+end;
+' language plpgsql
+stable 
+security definer;
+
+create or replace
+function i_have_person_detail_priv(int4, int4) returns bool as '
+declare
+    result bool;
+    detail_id alias for $1;
+    person_id alias for $2;
+begin
+    select into result 
+       i_have_personal_priv(veil_int4array_get(''det_types_privs'', detail_id),
+			    person_id);
+    return result;
+end;
+' language plpgsql
+stable 
+security definer;
+
+create view privileges(
+       privilege_id,
+       privilege_name) as
+select privilege_id,
+       privilege_name
+from   hidden.privileges
+where  i_have_global_priv(10001);
+
+create rule ii_privileges as
+on insert to privileges
+do instead 
+    insert into hidden.privileges
+	   (privilege_id, privilege_name)
+    select new.privilege_id, new.privilege_name 
+    where  i_have_global_priv(10002);
+
+create rule iu_privileges as
+on update to privileges
+do instead
+    update hidden.privileges
+    set    privilege_name = new.privilege_name,
+	   privilege_id = new.privilege_id
+    where  privilege_id = old.privilege_id
+    and    i_have_global_priv(10003);
+ 
+create rule id_privileges as
+on delete to privileges
+do instead
+    delete from hidden.privileges
+    where  privilege_id = old.privilege_id
+    and    i_have_global_priv(10004);
+
+grant select, insert, update, delete on privileges to public;    
+
+create view roles(
+       role_id,
+       role_name) as
+select role_id,
+       role_name
+from   hidden.roles
+where  i_have_global_priv(10005);
+
+create rule ii_roles as
+on insert to roles
+do instead 
+    insert into hidden.roles
+	   (role_id, role_name)
+    select new.role_id, new.role_name
+    where  i_have_global_priv(10006);
+
+create rule iu_roles as
+on update to roles
+do instead
+    update hidden.roles
+    set    role_name = new.role_name,
+	   role_id = new.role_id
+    where  role_id = old.role_id
+    and    i_have_global_priv(10007);
+ 
+create rule id_roles as
+on delete to roles
+do instead
+    delete from hidden.roles
+    where  role_id = old.role_id
+    and    i_have_global_priv(10008);
+
+grant select, insert, update, delete on roles to public;    
+
+create view role_privileges(
+       role_id,
+       privilege_id) as
+select role_id,
+       privilege_id
+from   hidden.role_privileges
+where  i_have_global_priv(10009);
+
+create rule ii_role_privileges as
+on insert to role_privileges
+do instead 
+    insert into hidden.role_privileges
+	   (role_id, privilege_id)
+    select new.role_id, new.privilege_id
+    where  i_have_global_priv(10010);
+
+create rule iu_role_privileges as
+on update to role_privileges
+do instead
+    update hidden.role_privileges
+    set    role_id = new.role_id, 
+	   privilege_id = new.privilege_id
+    where  role_id = old.role_id
+    and    privilege_id = old.privilege_id
+    and    i_have_global_priv(10011);
+ 
+create rule id_role_privileges as
+on delete to role_privileges
+do instead
+    delete from hidden.role_privileges
+    where  role_id = old.role_id
+    and    i_have_global_priv(10012);
+
+grant select, insert, update, delete on role_privileges to public;    
+
+
+create view role_roles(
+       role_id,
+       has_role_id) as
+select role_id,
+       has_role_id
+from   hidden.role_roles
+where  i_have_global_priv(10041);
+
+create rule ii_role_roles as
+on insert to role_roles
+do instead 
+    insert into hidden.role_roles
+	   (role_id, has_role_id)
+    select new.role_id, new.has_role_id
+    where  i_have_global_priv(10042);
+
+create rule iu_role_roles as
+on update to role_roles
+do instead
+    update hidden.role_roles
+    set    role_id = new.role_id,
+	   has_role_id = new.has_role_id
+    where  role_id = old.role_id
+    and    i_have_global_priv(10043);
+ 
+create rule id_role_roles as
+on delete to role_roles
+do instead
+    delete from hidden.role_roles
+    where  role_id = old.role_id
+    and    i_have_global_priv(10044);
+
+grant select, insert, update, delete on role_roles to public;    
+
+
+create view persons(
+       person_id,
+       person_name) as
+select person_id,
+       person_name
+from   hidden.persons
+where  i_have_personal_priv(10013, person_id);
+
+create rule ii_persons as
+on insert to persons
+do instead 
+    insert into hidden.persons
+	   (person_id, person_name)
+    select new.person_id, new.person_name
+    where  i_have_personal_priv(10014, new.person_id);
+
+create rule iu_persons as
+on update to persons
+do instead
+    update hidden.persons
+    set    person_id = new.person_id,
+	   person_name = new.person_name
+    where  person_id = old.person_id
+    and    i_have_personal_priv(10015, old.person_id);
+ 
+create rule id_persons as
+on delete to persons
+do instead
+    delete from hidden.persons
+    where  person_id = old.person_id
+    and    i_have_personal_priv(10016, old.person_id);
+
+grant select, insert, update, delete on persons to public;    
+
+
+create view projects(
+       project_id,
+       project_name) as
+select project_id,
+       project_name
+from   hidden.projects
+where  i_have_project_priv(10017, project_id);
+
+create rule ii_projects as
+on insert to projects
+do instead 
+    insert into hidden.projects
+	   (project_id, project_name)
+    select new.project_id, new.project_name
+    where  i_have_project_priv(10018, new.project_id);
+
+create rule iu_projects as
+on update to projects
+do instead
+    update hidden.projects
+    set    project_id = new.project_id,
+	   project_name = new.project_name
+    where  project_id = old.project_id
+    and    i_have_project_priv(10019, old.project_id);
+ 
+create rule id_projects as
+on delete to projects
+do instead
+    delete from hidden.projects
+    where  project_id = old.project_id
+    and    i_have_project_priv(10020, old.project_id);
+
+grant select, insert, update, delete on projects to public;    
+
+
+create view detail_types (
+       detail_type_id,
+       required_privilege_id,
+       detail_type_name) as 
+select detail_type_id,
+       required_privilege_id,
+       detail_type_name
+from   hidden.detail_types
+where  i_have_global_priv(10021);
+
+create rule ii_detail_types as
+on insert to detail_types
+do instead 
+    insert into hidden.detail_types
+	   (detail_type_id, detail_type_name)
+    select new.detail_type_id, new.detail_type_name
+    where  i_have_global_priv(10022);
+
+create rule iu_detail_types as
+on update to detail_types
+do instead
+    update hidden.detail_types
+    set    detail_type_id = new.detail_type_id, 
+	   detail_type_name = new.detail_type_name
+    where  detail_type_id = old.detail_type_id
+    and    i_have_global_priv(10023);
+ 
+create rule id_detail_types as
+on delete to detail_types
+do instead
+    delete from hidden.detail_types
+    where  detail_type_id = old.detail_type_id
+    and    i_have_global_priv(10024);
+
+grant select, insert, update, delete on detail_types to public;    
+
+
+create view assignments (
+       project_id,
+       person_id,
+       role_id) as
+select project_id,
+       person_id,
+       role_id
+from   hidden.assignments
+where  i_have_proj_or_pers_priv(10025, project_id, person_id);
+
+create rule ii_assignments as
+on insert to assignments
+do instead 
+    insert into hidden.assignments
+	   (project_id, person_id, role_id)
+    select new.project_id, new.person_id, new.role_id
+    where  i_have_proj_or_pers_priv(10026, new.project_id, new.person_id);
+
+create rule iu_assignments as
+on update to assignments
+do instead
+    update hidden.assignments
+    set    project_id = new.project_id,
+	   person_id = new.person_id, 
+	   role_id = new.person_id
+    where  project_id = old.project_id
+    and    person_id = old.person_id
+    and    i_have_proj_or_pers_priv(10027, old.project_id, old.person_id);
+ 
+create rule id_assignments as
+on delete to assignments
+do instead
+    delete from hidden.assignments
+    where  project_id = old.project_id
+    and    person_id = old.person_id
+    and    i_have_proj_or_pers_priv(10028, old.project_id, old.person_id);
+
+grant select, insert, update, delete on assignments to public;    
+
+
+create view person_roles (
+       person_id,
+       role_id) as
+select person_id,
+       role_id
+from   hidden.person_roles
+where  i_have_personal_priv(10029, person_id);
+
+create rule ii_person_roles as
+on insert to person_roles
+do instead 
+    insert into hidden.person_roles
+	   (person_id, role_id)
+    select new.person_id, new.role_id
+    where  i_have_personal_priv(10030, new.person_id);
+
+create rule iu_person_roles as
+on update to person_roles
+do instead
+    update hidden.person_roles
+    set    person_id = new.person_id,
+	   role_id = new.role_id
+    where  person_id = old.person_id
+    and    role_id = old.role_id
+    and    i_have_personal_priv(10031, old.person_id);
+ 
+create rule id_person_roles as
+on delete to person_roles
+do instead
+    delete from hidden.person_roles
+    where  person_id = old.person_id
+    and    role_id = old.role_id
+    and    i_have_personal_priv(10032, old.person_id);
+
+grant select, insert, update, delete on person_roles to public;    
+
+
+create view project_details (
+       project_id,
+       detail_type_id,
+       value) as
+select project_id,
+       detail_type_id,
+       value
+from   hidden.project_details
+where  i_have_project_priv(10033, project_id)
+and    i_have_project_detail_priv(detail_type_id, project_id);
+
+create rule ii_project_details as
+on insert to project_details
+do instead 
+    insert into hidden.project_details
+	   (project_id, detail_type_id, value)
+    select new.project_id, new.detail_type_id, new.value
+    where  i_have_project_priv(10034, new.project_id)
+    and    i_have_project_detail_priv(new.detail_type_id, new.project_id);
+
+create rule iu_project_details as
+on update to project_details
+do instead
+    update hidden.project_details
+    set    project_id = new.project_id, 
+	   detail_type_id = new.detail_type_id, 
+	   value = new.value
+    where  project_id = old.project_id
+    and    detail_type_id = old.detail_type_id
+    and    i_have_project_priv(10035, old.project_id)
+    and    i_have_project_detail_priv(old.detail_type_id, old.project_id);
+ 
+create rule id_project_details as
+on delete to project_details
+do instead
+    delete from hidden.project_details
+    where  project_id = old.project_id
+    and    detail_type_id = old.detail_type_id
+    and    i_have_project_priv(10036, old.project_id)
+    and    i_have_project_detail_priv(old.detail_type_id, old.project_id);
+
+grant select, insert, update, delete on project_details to public;    
+
+
+create view person_details (
+       person_id,
+       detail_type_id,
+       value) as
+select person_id,
+       detail_type_id,
+       value
+from   hidden.person_details
+where  i_have_personal_priv(10037, person_id)
+and    i_have_person_detail_priv(detail_type_id, person_id);
+
+create rule ii_person_details as
+on insert to person_details
+do instead 
+    insert into hidden.person_details
+	   (person_id, detail_type_id, value)
+    select new.person_id, new.detail_type_id, new.value
+    where  i_have_personal_priv(10038, new.person_id)
+    and    i_have_person_detail_priv(new.detail_type_id, new.person_id);
+
+create rule iu_person_details as
+on update to person_details
+do instead
+    update hidden.person_details
+    set    person_id = new.person_id, 
+	   detail_type_id = new.detail_type_id, 
+	   value = new.value
+    where  person_id = old.person_id
+    and    detail_type_id = old.detail_type_id
+    and    i_have_personal_priv(10039, old.person_id)
+    and    i_have_person_detail_priv(old.detail_type_id, old.person_id);
+ 
+create rule id_person_details as
+on delete to person_details
+do instead
+    delete from hidden.person_details
+    where  person_id = old.person_id
+    and    detail_type_id = old.detail_type_id
+    and    i_have_personal_priv(10040, old.person_id)
+    and    i_have_person_detail_priv(old.detail_type_id, old.person_id);
+
+
+grant select, insert, update, delete on person_details to public;    
+
+
+create or replace
+function global_privs_qry() returns setof int4 as '
+select * from veil_bitmap_bits(''global_context'');
+' language sql
+stable security definer;
+
+create or replace view my_global_privs (
+       privilege_id) as
+select * from global_privs_qry();
+
+grant select on my_global_privs to public;    
+
+
+create or replace
+function personal_privs_qry() returns setof int4 as '
+select * from veil_bitmap_array_bits(''role_privs'', 11002);
+' language sql
+stable security definer;
+
+create or replace view my_personal_privs (
+       privilege_id) as
+select * from personal_privs_qry();
+
+grant select on my_personal_privs to public;    
+
+
+create or replace
+function projects_qry() returns setof varchar as '
+select * from veil_bitmap_hash_entries(''project_context'');
+' language sql
+stable security definer;
+
+create or replace view my_projects (
+       project_id) as
+select * from projects_qry();
+
+grant select on my_projects to public;    
+
+
+create type hidden.proj_privs as (
+    project_id	 int4,
+    privilege_id int4
+);
+
+create or replace
+function project_privs() returns setof hidden.proj_privs as '
+declare
+    _project record;
+    _priv    record;
+    _result  hidden.proj_privs;
+begin
+    for _project in 
+        select * from veil_bitmap_hash_entries(''project_context'')
+    loop
+        _result.project_id = _project.veil_bitmap_hash_entries;
+        for _priv in
+            select * from veil_bitmap_hash_bits(''project_context'', 
+                                                _result.project_id)
+        loop
+            _result.privilege_id = _priv.veil_bitmap_hash_bits;
+            return next _result;
+        end loop;
+    end loop;
+    return;
+end;
+' language plpgsql
+stable security definer;
+
+grant execute on function project_privs() to public;
+
+create or replace view my_project_privs (
+       project_id,
+       privilege_id) as
+select * from project_privs();
+
+grant select on my_project_privs to public;    
+
+
+create or replace view my_privs (
+    context,
+    project,
+    privilege_id,
+    privilege_name)
+as 
+select a.context, a.project, a.id, p.privilege_name
+from   (
+        select 'Project' as context, project_id as project,
+               privilege_id as id, 3 as seq
+        from   my_project_privs
+        union all
+        select 'Global', null, privilege_id, 1
+        from   my_global_privs
+        union all
+        select 'Personal', null, privilege_id, 2
+        from   my_personal_privs
+       ) a,
+       privileges p
+where  p.privilege_id = a.id
+order by a.seq, a.context, a.project, a.id;
+
+grant select on my_privs to public;    

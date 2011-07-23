@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<autograph:report
+    xmlns:xi="http://www.w3.org/2003/XInclude"
+    xmlns:autograph="http://cfconsulting.ca/autograph/1.0" >
+
+    <autograph:graphparams>
+	<autograph:tablemode name="simple" />
+    </autograph:graphparams>
+
+    <autograph:includetables>
+	<autograph:table name="privileges" schema="demo" />
+	<autograph:table name="roles" schema="demo" />
+	<autograph:table name="role_privileges" schema="demo" />
+	<autograph:table name="role_roles" schema="demo" />
+	<autograph:table name="persons" schema="demo" />
+	<autograph:table name="person_roles" schema="demo" />
+	<autograph:table name="projects" schema="demo" />
+	<autograph:table name="assignments" schema="demo" />
+	<autograph:table name="detail_types" schema="demo" />
+	<autograph:table name="person_details" schema="demo" />
+	<autograph:table name="project_details" schema="demo" />
+    </autograph:includetables>
+
+    <xi:include href="./demo.xml" />
+</autograph:report>
+<!-- arch-tag: 754fde1b-e801-4666-93a3-e38d8c0665d0 -->

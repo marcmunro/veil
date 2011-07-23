@@ -1,0 +1,123 @@
+<schema generated="yes">
+  <table name="role_privileges">
+    <column name="role_id" type="integer" key="1"/>
+    <column name="role_id" type="integer" null="no" key="1"/>
+    <column name="privilege_id" type="integer" key="2"/>
+    <column name="privilege_id" type="integer" null="no" key="2"/>
+    <relations>
+        <relation name="role_privilege__role_fk" column="role_id" table="roles" fk="role_id"/>
+        <relation name="role_privilege__priv_fk" column="privilege_id" table="privileges" fk="privilege_id"/>
+    </relations>
+  </table>
+  <table name="role_roles">
+    <column name="role_id" type="integer" key="1"/>
+    <column name="role_id" type="integer" null="no" key="1"/>
+    <column name="has_role_id" type="integer" key="2"/>
+    <column name="has_role_id" type="integer" null="no" key="2"/>
+    <relations>
+        <relation name="role_role__role_fk" column="role_id" table="roles" fk="role_id"/>
+        <relation name="role_role__has_role_fk" column="has_role_id" table="roles" fk="role_id"/>
+    </relations>
+  </table>
+  <table name="privileges">
+    <column name="privilege_id" type="integer" key="1"/>
+    <column name="privilege_id" type="integer" null="no" key="1"/>
+    <column name="privilege_name" type="varchar" size="80"/>
+    <column name="privilege_name" type="varchar" size="80" null="no"/>
+  </table>
+  <table name="assignments">
+    <column name="project_id" type="integer" key="1"/>
+    <column name="project_id" type="integer" null="no" key="1"/>
+    <column name="person_id" type="integer" key="2"/>
+    <column name="person_id" type="integer" null="no" key="2"/>
+    <column name="role_id" type="integer"/>
+    <column name="role_id" type="integer" null="no"/>
+    <relations>
+        <relation name="assignment__project_fk" column="project_id" table="projects" fk="project_id"/>
+        <relation name="assignment__person_fk" column="person_id" table="persons" fk="person_id"/>
+        <relation name="assignment__role_fk" column="role_id" table="roles" fk="role_id"/>
+    </relations>
+  </table>
+  <table name="person_roles">
+    <column name="person_id" type="integer" key="1"/>
+    <column name="person_id" type="integer" null="no" key="1"/>
+    <column name="role_id" type="integer" key="2"/>
+    <column name="role_id" type="integer" null="no" key="2"/>
+    <relations>
+        <relation name="person_role__person_fk" column="person_id" table="persons" fk="person_id"/>
+        <relation name="person_role__role_fk" column="role_id" table="roles" fk="role_id"/>
+    </relations>
+  </table>
+  <table name="roles">
+    <column name="role_id" type="integer" key="1"/>
+    <column name="role_id" type="integer" null="no" key="1"/>
+    <column name="role_name" type="varchar" size="80"/>
+    <column name="role_name" type="varchar" size="80" null="no"/>
+  </table>
+  <table name="projects">
+    <column name="project_id" type="integer" key="1"/>
+    <column name="project_id" type="integer" null="no" key="1"/>
+    <column name="project_name" type="varchar" size="80"/>
+    <column name="project_name" type="varchar" size="80" null="no"/>
+  </table>
+  <table name="project_details">
+    <column name="project_id" type="integer" key="1"/>
+    <column name="project_id" type="integer" null="no" key="1"/>
+    <column name="detail_type_id" type="integer" key="2"/>
+    <column name="detail_type_id" type="integer" null="no" key="2"/>
+    <column name="value" type="text"/>
+    <column name="value" type="text" null="no"/>
+    <relations>
+        <relation name="project_detail__project_fk" column="project_id" table="projects" fk="project_id"/>
+        <relation name="project_detail__detail_fk" column="detail_type_id" table="detail_types" fk="detail_type_id"/>
+    </relations>
+  </table>
+  <table name="persons">
+    <column name="person_id" type="integer" key="1"/>
+    <column name="person_id" type="integer" null="no" key="1"/>
+    <column name="person_name" type="varchar" size="80"/>
+    <column name="person_name" type="varchar" size="80" null="no"/>
+  </table>
+  <table name="person_details">
+    <column name="person_id" type="integer" key="1"/>
+    <column name="person_id" type="integer" null="no" key="1"/>
+    <column name="detail_type_id" type="integer" key="2"/>
+    <column name="detail_type_id" type="integer" null="no" key="2"/>
+    <column name="value" type="text"/>
+    <column name="value" type="text" null="no"/>
+    <relations>
+        <relation name="person_detail__person_fk" column="person_id" table="persons" fk="person_id"/>
+        <relation name="person_detail__detail_fk" column="detail_type_id" table="detail_types" fk="detail_type_id"/>
+    </relations>
+  </table>
+  <table name="detail_types">
+    <column name="detail_type_id" type="integer" key="1"/>
+    <column name="detail_type_id" type="integer" null="no" key="1"/>
+    <column name="required_privilege_id" type="integer"/>
+    <column name="required_privilege_id" type="integer" null="no"/>
+    <column name="detail_type_name" type="varchar" size="80"/>
+    <column name="detail_type_name" type="varchar" size="80" null="no"/>
+    <relations>
+        <relation name="detail_type__priv_fk" column="required_privilege_id" table="privileges" fk="privilege_id"/>
+    </relations>
+  </table>
+  <table name="my_global_privs">
+    <column name="privilege_id" type="integer"/>
+  </table>
+  <table name="my_personal_privs">
+    <column name="privilege_id" type="integer"/>
+  </table>
+  <table name="my_projects">
+    <column name="project_id" type="varchar"/>
+  </table>
+  <table name="my_project_privs">
+    <column name="project_id" type="integer"/>
+    <column name="privilege_id" type="integer"/>
+  </table>
+  <table name="my_privs">
+    <column name="context" type="text"/>
+    <column name="project" type="integer"/>
+    <column name="privilege_id" type="integer"/>
+    <column name="privilege_name" type="varchar" size="80"/>
+  </table>
+</schema>

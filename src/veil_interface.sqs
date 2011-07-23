@@ -1,0 +1,743 @@
+/* ----------
+ * veil_interface.sqs (or a file derived from it)
+ *
+ *      Source file from which veil_interface_trial.sql and
+ *      veil--<version>.sql is generated using sed.
+ *
+ *      Copyright (c) 2005 - 2011 Marc Munro
+ *      Author:  Marc Munro
+ *	License: BSD
+ *
+ * ----------
+ */
+
+create type veil_range_t as (
+    min  int4,
+    max  int4
+);
+comment on type veil_range_t is
+'Veil type used to record ranges.  A range is a pair of integers identifying
+the minimum and maximum values of the range.  Ranges are used to
+constrain the size of a bitmap or bitmap array.';
+
+create type veil_variable_t as (
+    name    text,
+    type    text,
+    shared  bool
+);
+comment on type veil_variable_t is
+'Veil type used as the result type of veil_variables(), to describe each
+variable known to a veil instance.';
+
+
+create or replace
+function veil_share(name text) returns bool
+     as '@LIBPATH@', 'veil_share'
+     language C stable strict;
+
+comment on function veil_share(name text) is
+'Create a shared variable named NAME.
+
+Return TRUE if successful, else raise an error.
+
+Create a veil variable as a shared variable.  Variables are named
+containers for various types of values.  They are referenced by name,
+passing the name as a string to the various veil functions.
+
+Variables may be shared variables in which case they are available, with
+the same value, to all sessions, or session variables in which case each
+session will have its own instance.  Variables are by default created as
+session variables, and are created by assignment, or initialisation.  To
+create a shared variable, call veil_share() with the name of the
+variable you wish to create, then create and use the variable as you
+would a session variable.  Shared variables should only be created and
+initialised from veil_init() in order to prevent race conditions.  If a
+variable has already been created as a session variable, it cannot be
+repurposed as a shared variable.';
+
+
+create or replace
+function veil_variables() returns setof veil_variable_t
+     as '@LIBPATH@', 'veil_variables'
+     language C stable;
+
+comment on function veil_variables() is
+'List all current veil_variables.
+Return a set of veil_variable_t results, detailing each existant
+variable
+
+This is intended for interactive use for debugging purposes.';
+
+
+create or replace
+function veil_init_range(name text, min int4, max int4) returns int4
+     as '@LIBPATH@', 'veil_init_range'
+     language C stable strict;
+
+comment on function veil_init_range(text, int4, int4) is
+'Initialise a Range variable called NAME constrained by MIN and MAX.
+
+Return the number of  elements in the range.
+
+Ranges may be examined using the veil_range() function.';
+
+
+create or replace
+function veil_range(name text) returns veil_range_t
+     as '@LIBPATH@', 'veil_range'
+     language C stable strict;
+
+comment on function veil_range(name text) is
+'Return the range for range variable NAME.';
+
+
+create or replace
+function veil_init_bitmap(bitmap_name text, range_name text) returns bool
+     as '@LIBPATH@', 'veil_init_bitmap'
+     language C stable strict;
+
+comment on function veil_init_bitmap(text, text) is
+'Create or re-initialise the Bitmap named BITMAP_NAME, for the range of
+bits given by RANGE_NAME.
+
+Return TRUE on success, raise an error otherwise.
+
+All bits in the bitmap will be zero (cleared).';
+
+
+create or replace
+function veil_clear_bitmap(name text) returns bool
+     as '@LIBPATH@', 'veil_clear_bitmap'
+     language C stable strict;
+
+comment on function veil_clear_bitmap(text) is
+'Clear the Bitmap or BitmapRef identified by NAME.
+
+Return TRUE, or raise an error.
+
+Clear (set to zero) all bits in the named bitmap.';
+
+
+create or replace
+function veil_bitmap_setbit(name text, bit_number int4) returns bool
+     as '@LIBPATH@', 'veil_bitmap_setbit'
+     language C stable strict;
+
+comment on function veil_bitmap_setbit(text, int4) is
+'In the Bitmap or BitmapRef identified by NAME, set the bit given by
+BIT_NUMBER.
+
+Return TRUE or raise an error.
+
+Set to 1, the identified bit.';
+
+
+create or replace
+function veil_bitmap_clearbit(name text, bit_number int4) returns bool
+     as '@LIBPATH@', 'veil_bitmap_clearbit'
+     language C stable strict;
+
+comment on function veil_bitmap_clearbit(text, int4) is
+'In the Bitmap or BitmapRef identified by NAME, clear the bit given by
+BIT_NUMBER.
+
+Return TRUE or raise an error.
+
+Set to 0, the identified bit.';
+
+
+create or replace
+function veil_bitmap_testbit(name text, bit_number int4) returns bool
+     as '@LIBPATH@', 'veil_bitmap_testbit'
+     language C stable strict;
+
+comment on function veil_bitmap_testbit(text, int4) is
+'In the Bitmap or BitmapRef identified by NAME, test the bit given by
+BIT_NUMBER.
+
+Return TRUE if the bit is set, FALSE if it is zero.';
+
+
+create or replace
+function veil_bitmap_union(result_name text, name2 text) returns bool
+     as '@LIBPATH@', 'veil_bitmap_union'
+     language C stable strict;
+
+comment on function veil_bitmap_union(text, text) is
+'Union two Bitmaps, RESULT_NAME and NAME2, with the result going into
+the first.
+
+Return TRUE, or raise an error.';
+
+
+create or replace
+function veil_bitmap_intersect(result_name text, name2 text) returns bool
+     as '@LIBPATH@', 
+	'veil_bitmap_intersect'
+     language C stable strict;
+
+comment on function veil_bitmap_intersect(text, text) is
+'Intersect two Bitmaps, RESULT_NAME and NAME2, with the result going into
+the first.
+
+Return TRUE, or raise an error.';
+
+
+create or replace
+function veil_bitmap_bits(name text) returns setof int4
+     as '@LIBPATH@', 'veil_bitmap_bits'
+     language C stable strict;
+
+comment on function veil_bitmap_bits(text) is
+'Return each bit in the bitmap NAME.
+
+This is primarily intended for interactive use for debugging, etc.';
+
+
+create or replace
+function veil_bitmap_range(name text) returns veil_range_t
+     as '@LIBPATH@', 'veil_bitmap_range'
+     language C stable strict;
+
+comment on function veil_bitmap_range(text) is
+'Return the range of bitmap NAME.  
+
+It is primarily intended for interactive use.';
+
+
+
+create or replace
+function veil_init_bitmap_array(bmarray text, array_range text, 
+	 			bitmap_range text) returns bool
+     as '@LIBPATH@', 'veil_init_bitmap_array'
+     language C stable strict;
+
+comment on function veil_init_bitmap_array(text, text, text) is
+'Creates or resets (clears) BMARRAY, to have ARRAY_RANGE bitmaps of
+BITMAP_RANGE bits.
+
+Returns TRUE or raises an error';
+
+
+create or replace
+function veil_clear_bitmap_array(bmarray text) returns bool
+     as '@LIBPATH@', 'veil_clear_bitmap_array'
+     language C stable strict;
+
+comment on function veil_clear_bitmap_array(text) is
+'Clear all bits in all bitmaps of bitmap array BMARRAY.
+
+Return TRUE or raise an error';
+
+
+create or replace
+function veil_bitmap_from_array(bmref text, bmarray text, 
+	 			index int4) returns text
+     as '@LIBPATH@', 
+	'veil_bitmap_from_array'
+     language C stable strict;
+
+comment on function veil_bitmap_from_array(text, text, int4) is
+'Set BitmapRef BMREF to the bitmap from BMARRAY indexed by INDEX.
+
+Return the name of the BitmapRef.
+
+This is used to isolate a single bitmap from a bitmap array, recording
+it in a BitmapRef.  That bitmap can then be manipulated by ordinary veil
+bitmap functions.  Note that BitMapRefs can only be referenced within
+the transaction they are defined.';
+
+
+create or replace
+function veil_bitmap_array_testbit(
+    bmarray text, arr_idx int4, bitno int4) returns bool
+     as '@LIBPATH@', 
+	'veil_bitmap_array_testbit'
+     language C stable strict;
+
+comment on function veil_bitmap_array_testbit(text, int4, int4) is
+'Test a bit in BMARRAY, from the bitmap indexed by ARR_IDX, checking the
+bit identified by BITNO.
+
+Return TRUE if the bit is set, else FALSE';
+
+
+create or replace
+function veil_bitmap_array_setbit(
+    bmarray text, arr_idx int4, bitno int4) returns bool
+     as '@LIBPATH@', 
+	'veil_bitmap_array_setbit'
+     language C stable strict;
+
+comment on function veil_bitmap_array_setbit(text, int4, int4) is
+'Set a bit in BMARRAY, from the bitmap indexed by ARR_IDX, setting the
+bit identified by BITNO.
+
+Return TRUE';
+
+
+create or replace
+function veil_bitmap_array_clearbit(
+    bmarray text, arr_idx int4, bitno int4) returns bool
+     as '@LIBPATH@', 
+	'veil_bitmap_array_clearbit'
+     language C stable strict;
+
+comment on function veil_bitmap_array_clearbit(text, int4, int4) is
+'Clear a bit in BMARRAY, from the bitmap indexed by ARR_IDX, clearing the
+bit identified by BITNO.
+
+Return TRUE';
+
+
+create or replace
+function veil_union_from_bitmap_array(
+    bitmap text, bmarray text, arr_idx int4) returns bool
+     as '@LIBPATH@', 
+	'veil_union_from_bitmap_array'
+     language C stable strict;
+
+comment on function veil_union_from_bitmap_array(text, text, int4) is
+'Union BITMAP with BMARRAY[ARR_IDX], with the result going into bitmap.
+
+Return TRUE';
+
+
+create or replace
+function veil_intersect_from_bitmap_array(
+    bitmap text, bmarray text, arr_idx int4) returns bool
+     as '@LIBPATH@', 
+	'veil_intersect_from_bitmap_array'
+     language C stable strict;
+
+comment on function veil_intersect_from_bitmap_array(text, text, int4) is
+'Intersect BITMAP with BMARRAY[ARR_IDX], with the result going into bitmap.
+
+Return TRUE';
+
+
+create or replace
+function veil_bitmap_array_bits(bmarray text, arr_idx int4) returns setof int4
+     as '@LIBPATH@', 
+	'veil_bitmap_array_bits'
+     language C stable strict;
+
+comment on function veil_bitmap_array_bits(text, int4) is
+'Return all bits in the bitmap given by BMARRAY[ARR_IDX].
+
+This is primarily intended for interactive use: for debugging, etc.';
+
+
+create or replace
+function veil_bitmap_array_arange(bmarray text) returns veil_range_t
+     as '@LIBPATH@', 
+	'veil_bitmap_array_arange'
+     language C stable strict;
+
+comment on function veil_bitmap_array_arange(text) is
+'Return the array bounds for BMARRAY.';
+
+
+create or replace
+function veil_bitmap_array_brange(bmarray text) returns veil_range_t
+     as '@LIBPATH@', 
+	'veil_bitmap_array_brange'
+     language C stable strict;
+
+comment on function veil_bitmap_array_brange(text) is
+'Return the range of the bitmaps in BMARRAY.';
+
+
+
+create or replace
+function veil_init_bitmap_hash(bmhash text, range text) returns bool
+     as '@LIBPATH@', 'veil_init_bitmap_hash'
+     language C stable strict;
+
+comment on function veil_init_bitmap_hash(text, text) is
+'Initialise a bitmap hash variable called BMHASH to contain bitmaps of
+size RANGE.
+
+Return TRUE.';
+
+
+create or replace
+function veil_clear_bitmap_hash(bmhash text) returns bool
+     as '@LIBPATH@', 'veil_clear_bitmap_hash'
+     language C stable strict;
+
+comment on function veil_clear_bitmap_hash(text) is
+'Clear all bits in an existing bitmap hash named BMHASH.
+
+Return TRUE.';
+
+
+create or replace
+function veil_bitmap_hash_key_exists(bmhash text, key text) returns bool
+     as '@LIBPATH@', 
+	'veil_bitmap_hash_key_exists'
+     language C stable strict;
+
+comment on function veil_bitmap_hash_key_exists(text, text) is
+'Determine whether in BMHASH the given KEY already exists.
+
+Return TRUE if the key exists, else FALSE.';
+
+
+create or replace
+function veil_bitmap_from_hash(text, text, text) returns text
+     as '@LIBPATH@', 
+	'veil_bitmap_from_hash'
+     language C stable strict;
+
+comment on function veil_bitmap_from_hash(text, text, text) is
+'Set BitmapRef BMREF to the bitmap from BMHASH identfied by KEY.
+
+Return the name of BMREF.';
+
+
+create or replace
+function veil_bitmap_hash_testbit(text, text, int4) returns bool
+     as '@LIBPATH@', 
+	'veil_bitmap_hash_testbit'
+     language C stable strict;
+
+comment on function veil_bitmap_hash_testbit(text, text, int4) is
+'Test the bit, in the bitmap from BMHASH identified by KEY, given by
+BITNO.
+
+Return TRUE if the bit is set, else FALSE.';
+
+
+create or replace
+function veil_bitmap_hash_setbit(text, text, int4) returns bool
+     as '@LIBPATH@', 
+	'veil_bitmap_hash_setbit'
+     language C stable strict;
+
+comment on function veil_bitmap_hash_setbit(text, text, int4) is
+'Set the bit, in the bitmap from BMHASH identified by KEY, given by
+BITNO to TRUE.
+
+Return TRUE.';
+
+
+create or replace
+function veil_bitmap_hash_clearbit(text, text, int4) returns bool
+     as '@LIBPATH@', 
+	'veil_bitmap_hash_clearbit'
+     language C stable strict;
+
+comment on function veil_bitmap_hash_clearbit(text, text, int4) is
+'Set the bit, in the bitmap from BMHASH identified by KEY, given by
+BITNO to FALSE.
+
+Return TRUE.';
+
+
+create or replace
+function veil_union_into_bitmap_hash(text, text, text) returns bool
+     as '@LIBPATH@', 
+	'veil_union_into_bitmap_hash'
+     language C stable strict;
+
+comment on function veil_union_into_bitmap_hash(text, text, text) is
+'Into the bitmap from BMHASH, identified by KEY, and union the bits from
+BITMAP (which may be a bitmap or bitmap_ref).
+
+Return TRUE.';
+
+
+create or replace
+function veil_union_from_bitmap_hash(text, text, text) returns bool
+     as '@LIBPATH@', 
+	'veil_union_from_bitmap_hash'
+     language C stable strict;
+comment on function veil_union_from_bitmap_hash(text, text, text) is
+'Retrieve the bitmap from BMHASH, identified by KEY, and union it into
+BITMAP (which may be a bitmap or bitmap_ref).
+
+Return TRUE.';
+
+
+create or replace
+function veil_intersect_from_bitmap_hash(text, text, text) returns bool
+     as '@LIBPATH@', 
+	'veil_intersect_from_bitmap_hash'
+     language C stable strict;
+comment on function veil_intersect_from_bitmap_hash(text, text, text) is
+'Into BITMAP, intersect the bits from the bitmap in BMHASH identified by
+KEY.
+
+Return TRUE.';
+
+
+create or replace
+function veil_bitmap_hash_bits(text, text) returns setof int4
+     as '@LIBPATH@', 
+	'veil_bitmap_hash_bits'
+     language C stable strict;
+
+comment on function veil_bitmap_hash_bits(text, text) is
+'Return the set of bits in the bitset from BMHASH identfied by KEY.';
+
+
+create or replace
+function veil_bitmap_hash_range(text) returns veil_range_t
+     as '@LIBPATH@', 
+	'veil_bitmap_hash_range'
+     language C stable strict;
+
+comment on function veil_bitmap_hash_range(text) is
+'Return the range of all bitmaps in BMHASH.';
+
+
+create or replace
+function veil_bitmap_hash_entries(text) returns setof text
+     as '@LIBPATH@', 
+	'veil_bitmap_hash_entries'
+     language C stable strict;
+
+comment on function veil_bitmap_hash_entries(text) is
+'Return the keys of all bitmaps in BMHASH.';
+
+
+create or replace
+function veil_int4_set(text, int4) returns int4
+     as '@LIBPATH@', 
+	'veil_int4_set'
+     language C stable;
+
+comment on function veil_int4_set(text, int4) is
+'Set the int4 variable NAME to VALUE.
+
+Return the new value';
+
+
+create or replace
+function veil_int4_get(text) returns int4
+     as '@LIBPATH@', 
+	'veil_int4_get'
+     language C stable strict;
+
+comment on function veil_int4_get(text) is
+'Return the value of int4 variable NAME.';
+
+
+create or replace
+function veil_init_int4array(text, text) returns bool
+     as '@LIBPATH@', 'veil_init_int4array'
+     language C stable strict;
+
+comment on function veil_init_int4array(text, text) is
+'Initialise the int4 array ARRAYNAME, with an index range of RANGE.
+
+Each entry in the array is set to zero.
+
+Return TRUE.';
+
+
+create or replace
+function veil_clear_int4array(text) returns bool
+     as '@LIBPATH@', 
+	'veil_clear_int4array'
+     language C stable strict;
+comment on function veil_clear_int4array(text) is
+'Reset each entry in the int4 array ARRAYNAME to zero.
+
+Return TRUE.';
+
+
+
+create or replace
+function veil_int4array_set(text, int4, int4) returns int4
+     as '@LIBPATH@', 
+	'veil_int4array_set'
+     language C stable;
+
+comment on function veil_int4array_set(text, int4, int4) is
+'Set the ARRAY element IDX to VALUE.
+
+Return the new value.';
+
+
+create or replace
+function veil_int4array_get(text, int4) returns int4
+     as '@LIBPATH@', 
+	'veil_int4array_get'
+     language C stable strict;
+
+comment on function veil_int4array_get(text, int4) is
+'Return the value of ARRAY element IDX.';
+
+
+create or replace
+function veil_init(bool) returns bool 
+     as '@LIBPATH@', 
+	'veil_init'
+     language C stable strict;
+
+comment on function veil_init(bool) is
+'This is the default version of veil_init, which does nothing except
+raise an error.';
+
+
+create or replace
+function veil_perform_reset() returns bool
+     as '@LIBPATH@', 'veil_perform_reset'
+     language C stable;
+
+comment on function veil_perform_reset() is
+'Allow userspace to force call of veil_init.
+
+This function may fail due to outstanding transactions possibly holding
+shared memory that we wish to re-use.  In this case a warning will be
+issued.  Once any long running transactions have completed, a retry
+should succeed.
+
+Return TRUE if successful, FALSE otherwise.';
+
+
+create or replace
+function veil_force_reset() returns bool
+     as '@LIBPATH@', 'veil_force_reset'
+     language C stable;
+
+comment on function veil_force_reset() is
+'Allow userspace to force an unconditional reset of veil shared memory.
+
+This always causes a PANIC, causing the database to fully reset.';
+
+
+create or replace
+function veil_version() returns text
+     as '@LIBPATH@', 'veil_version'
+     language C stable;
+
+comment on function veil_version() is
+'Return a text string identifying the current veil version.';
+
+
+
+create or replace
+function veil_serialise(varname text) returns text
+     as '@LIBPATH@', 
+	'veil_serialise'
+     language C stable strict;
+
+comment on function veil_serialise(varname text) is
+'Return a serialised copy of a variable VARNAME in text form.
+
+This is intended to be used with pgmemcache so that session variables
+can be efficiently cached.  Serialised values can be concatenated
+together as a single string and then deserialised in a single operation.
+
+The value can be restored by de-serialising it.';
+
+
+
+create or replace
+function veil_serialize(text) returns text
+     as '@LIBPATH@', 
+	'veil_serialise'
+     language C stable strict;
+
+comment on function veil_serialize(varname text) is
+'Return a serialised copy of a variable VARNAME in text form.
+
+This is intended to be used with pgmemcache so that session variables
+can be efficiently cached.  Serialized values can be concatenated
+together as a single string and then deserialized in a single operation.
+
+The value can be restored by de-serializing it.';
+
+
+
+create or replace
+function veil_deserialise(text) returns int4
+     as '@LIBPATH@', 
+	'veil_deserialise'
+     language C stable strict;
+
+comment on function veil_deserialise(text) is
+'Reset the contents of a set of serialised variable from STREAM.
+
+Return the number of items de-serialised.';
+
+
+-- Ditto for victims of webster.
+create or replace
+function veil_deserialize(text) returns int4
+     as '@LIBPATH@', 
+	'veil_deserialise'
+     language C stable strict;
+
+comment on function veil_deserialize(text) is
+'Reset the contents of a set of serialized variable from STREAM.
+
+Return the number of items de-serialized.';
+
+
+revoke execute on function veil_share(text) from public;
+revoke execute on function veil_variables() from public;
+revoke execute on function veil_init_range(text, int4,int4) from public;
+revoke execute on function veil_range(text) from public;
+
+revoke execute on function veil_init_bitmap(text, text) from public;
+revoke execute on function veil_clear_bitmap(text) from public;
+revoke execute on function veil_bitmap_setbit(text, int4) from public;
+revoke execute on function veil_bitmap_testbit(text, int4) from public;
+revoke execute on function veil_bitmap_bits(text) from public;
+revoke execute on function veil_bitmap_range(text) from public;
+
+revoke execute on function veil_init_bitmap_array(text, text, text)
+  from public;
+revoke execute on function veil_clear_bitmap_array(text) from public;
+revoke execute on function veil_bitmap_from_array(text, text, int4)
+  from public;
+revoke execute on function veil_bitmap_array_setbit(text, int4, int4)
+  from public;
+revoke execute on function veil_bitmap_array_testbit(text, int4, int4)
+  from public;
+revoke execute on function veil_union_from_bitmap_array(text, text, int4)
+  from public;
+revoke execute on function veil_intersect_from_bitmap_array(text, text, int4)
+  from public;
+revoke execute on function veil_bitmap_array_bits(text, int4) from public;
+revoke execute on function veil_bitmap_array_arange(text) from public;
+revoke execute on function veil_bitmap_array_brange(text) from public;
+
+
+revoke execute on function veil_init_bitmap_hash(text, text) from public;
+revoke execute on function veil_clear_bitmap_hash(text) from public;
+revoke execute on function veil_bitmap_hash_key_exists(text, text)
+  from public;
+revoke execute on function veil_bitmap_from_hash(text, text, text)
+  from public;
+revoke execute on function veil_bitmap_hash_setbit(text, text, int4)
+  from public;
+revoke execute on function veil_bitmap_hash_testbit(text, text, int4)
+  from public;
+revoke execute on function veil_union_into_bitmap_hash(text, text, text)
+  from public;
+revoke execute on function veil_union_from_bitmap_hash(text, text, text)
+  from public;
+revoke execute on function veil_intersect_from_bitmap_hash(text, text, text)
+  from public;
+revoke execute on function veil_bitmap_hash_bits(text, text) from public;
+revoke execute on function veil_bitmap_hash_range(text) from public;
+revoke execute on function veil_bitmap_hash_entries(text) from public;
+
+revoke execute on function veil_init_int4array(text, text) from public;
+revoke execute on function veil_clear_int4array(text) from public;
+revoke execute on function veil_int4array_set(text, int4, int4) from public;
+revoke execute on function veil_int4array_get(text, int4) from public;
+
+revoke execute on function veil_init(bool) from public;
+
+revoke execute on function veil_serialise(text) from public;
+revoke execute on function veil_serialize(text) from public;
+revoke execute on function veil_deserialise(text) from public;
+revoke execute on function veil_deserialize(text) from public;
+
+

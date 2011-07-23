@@ -1,0 +1,16 @@
+# veil.control
+#
+#      Postgres extension control file for Veil
+#
+#      Copyright (c) 2011 Marc Munro
+#      Author:  Marc Munro
+#      License: BSD
+#
+
+directory       = 'extension/veil'
+default_version = '1.0'
+module_pathname = '$libdir/veil'
+superuser       = true
+relocatable     = true
+
+comment = 'Provides tools for building row-level access controls.'
