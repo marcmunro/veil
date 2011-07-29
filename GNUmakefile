@@ -9,10 +9,9 @@
 # For a list of targets use make help.
 # 
 
+# Default target.  Dependencies for this are further defined in the 
+# included makefiles for SUBDIRS below.
 all:
-
-SUBDIRS = src regress docs demo
-include $(SUBDIRS:%=%/Makefile)
 
 BUILD_DIR = $(shell pwd)
 MODULE_big = veil
@@ -26,6 +25,10 @@ VEIL_VERSION = $(shell \
 
 VEIL_CONTROL = veil--$(VEIL_VERSION).sql
 
+SUBDIRS = src regress docs demo
+include $(SUBDIRS:%=%/Makefile)
+
+
 DATA = $(wildcard veil--*.sql)
 ALLDOCS = $(wildcard docs/html/*)
 # Only define DOCS (for the install target) if there are some.
@@ -37,7 +40,6 @@ PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 include $(DEPS)
-
 
 # Build per-source dependency files for inclusion
 # This ignores header files and any other non-local files (such as
@@ -62,11 +64,6 @@ make_deps: $(DEPS)
 deps: 
 	rm -f $(DEPS)
 	$(MAKE) MAKEFLAGS="$(MAKEFLAGS)" make_deps
-
-# Recursive make is used to cope with pgxs' inability to build more than
-# one library per makefile.   We recursively use this makefile to build
-# the veil_trial shared library.
-all: $(DATA)
 
 # Define some variables for the following tarball targets.
 tarball tarball_clean: VEIL_DIR=veil_$(VEIL_VERSION)
@@ -94,15 +91,6 @@ tarball_clean:
 
 # Ensure that tarball tmp files and dirs are removed by the clean target
 clean: tarball_clean
-
-ifndef VARIANT
-# Explicit target for veil_trial library.  Only required for non-variant
-# builds as the target is otherwise defined automatically.
-$(addsuffix $(DLSUFFIX), veil_trial):  $(TRIAL_SOURCES)
-	@if [ "x$(VARIANT)" = "x" ]; then \
-	    $(MAKE) MAKEFLAGS="$(MAKEFLAGS)" VARIANT=veil_trial $@; \
-	fi
-endif
 
 # Install veil_demo as well as veil
 install: demo_install

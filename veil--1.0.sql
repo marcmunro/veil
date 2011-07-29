@@ -1,8 +1,8 @@
 /* ----------
  * veil_interface.sqs (or a file derived from it)
  *
- *      Source file from which veil_interface_trial.sql and
- *      veil--<version>.sql is generated using sed.
+ *      Source file from which veil--<version>.sql is generated using
+ *	sed. 
  *
  *      Copyright (c) 2005 - 2011 Marc Munro
  *      Author:  Marc Munro

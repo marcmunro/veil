@@ -39,5 +39,5 @@ all: $(VEIL_CONTROL)
 
 $(VEIL_CONTROL): src/veil_interface.sqs
 	@echo Creating $(VEIL_CONTROL)
-	@sed -e 's!@LIBPATH@!$$libdir/veil!g' <$< >$(VEIL_CONTROL)
+	@sed -e 's!@LIBPATH@!$$libdir/veil!g' <$< >$@
 

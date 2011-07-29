@@ -11,6 +11,6 @@ directory       = 'extension/veil'
 default_version = '1.0'
 module_pathname = '$libdir/veil'
 superuser       = true
-relocatable     = true
+relocatable     = false
 
 comment = 'Provides tools for building row-level access controls.'
