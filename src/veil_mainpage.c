@@ -1887,14 +1887,18 @@ Next: \ref install
 Veil can be downloaded as a gzipped tarball from
 http://pgfoundry.org/projects/veil/
 
-The latest development version can also be retrieved from the cvs
-repository using the following commands.  When prompted for a password
-for anonymous, simply press the Enter key. 
+Since version 9.1, git is no longer available from cvs on pgfoundry.
+Development has switched to using git.  The primary git repository is 
+git://github.com/marcmunro/veil.git
+
+To checkout from git, create a suitable directory and do:
 
 \verbatim
-cvs -d :pserver:anonymous@cvs.pgfoundry.org:/cvsroot/veil login
-cvs -d :pserver:anonymous@cvs.pgfoundry.org:/cvsroot/veil checkout veil
+ git clone git://github.com/marcmunro/veil.git
 \endverbatim
+
+An alternative repository is also available here:
+git@bloodnok.com:veil.git
 
 \subsection Pre-requisites Pre-requisites
 You must have a copy of the Postgresql header files available in order
