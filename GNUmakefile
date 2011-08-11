@@ -17,15 +17,16 @@ BUILD_DIR = $(shell pwd)
 MODULE_big = veil
 OBJS = $(SOURCES:%.c=%.o)
 DEPS = $(SOURCES:%.c=%.d)
-EXTRA_CLEAN = $(SRC_CLEAN)
 EXTENSION=veil
-MODULEDIR=extension/veil
+MODULEDIR=extension
 VEIL_VERSION = $(shell \
     grep default_version veil.control | sed 's/[^0-9.]*\([0-9.]*\).*/\1/')
 
 VEIL_CONTROL = veil--$(VEIL_VERSION).sql
+VEIL_DEMO_CONTROL = veil_demo--$(VEIL_VERSION).sql
 
 SUBDIRS = src regress docs demo
+EXTRA_CLEAN = $(SRC_CLEAN) $(VEIL_CONTROL) $(VEIL_DEMO_CONTROL)
 include $(SUBDIRS:%=%/Makefile)
 
 
@@ -39,6 +40,9 @@ endif
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
+
+override CFLAGS := $(CFLAGS) -O0
+
 include $(DEPS)
 
 # Build per-source dependency files for inclusion

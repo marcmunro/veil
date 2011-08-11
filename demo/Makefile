@@ -35,4 +35,11 @@ demo/veil_demo.png: demo/veil_demo.xml
 demo_clean:
 	rm -f $(DEMO_GARBAGE) $(DEMO_DIR)/demo_build.log
 
+$(VEIL_DEMO_CONTROL): demo/veil_demo.sqs
+	@echo Creating $(VEIL_DEMO_CONTROL)
+	@cp $< $@
+
+all: $(VEIL_DEMO_CONTROL)
+
+
 demo_distclean: demo_clean

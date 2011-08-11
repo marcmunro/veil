@@ -148,6 +148,7 @@ ensure_init()
 	TransactionId this_xid;
     int   ok;
 	HTAB *hash;
+	bool pushed;
     static bool done = false;
 	static TransactionId xid = 0;
 
@@ -158,7 +159,7 @@ ensure_init()
 			return;
 		}
 		xid = this_xid;       /* Record our xid in case we recurse */
-        ok = vl_spi_connect();
+        ok = vl_spi_connect(&pushed);
         if (ok != SPI_OK_CONNECT) {
 			ereport(ERROR,
 					(errcode(ERRCODE_INTERNAL_ERROR),
@@ -168,7 +169,7 @@ ensure_init()
 
 		hash = vl_get_shared_hash();  /* Init all shared memory
 										 constructs */
-        (void) vl_bool_from_query("select veil_init(FALSE)", &success);
+        (void) vl_bool_from_query("select veil.veil_init(FALSE)", &success);
 
         if (!success) {
 			ereport(ERROR,
@@ -177,7 +178,7 @@ ensure_init()
 					 errdetail("veil_init() did not return true.")));
         }
         
-        ok = vl_spi_finish();
+        ok = vl_spi_finish(pushed);
         if (ok != SPI_OK_FINISH) {
 			ereport(ERROR,
 					(errcode(ERRCODE_INTERNAL_ERROR),
@@ -616,7 +617,7 @@ veil_variables(PG_FUNCTION_ARGS)
         funcctx = SRF_FIRSTCALL_INIT();
         oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
-        tupdesc = RelationNameGetTupleDesc("veil_variable_t");
+        tupdesc = RelationNameGetTupleDesc("veil.veil_variable_t");
         slot = TupleDescGetSlot(tupdesc);
         funcctx->slot = slot;
         attinmeta = TupleDescGetAttInMetadata(tupdesc);
@@ -743,7 +744,7 @@ datum_from_range(int32 min, int32 max)
         MemoryContext oldcontext = MemoryContextSwitchTo(TopMemoryContext);
         
         init_done = true;
-        tupdesc = RelationNameGetTupleDesc("veil_range_t");
+        tupdesc = RelationNameGetTupleDesc("veil.veil_range_t");
         slot = TupleDescGetSlot(tupdesc);
         attinmeta = TupleDescGetAttInMetadata(tupdesc);
         
@@ -2320,8 +2321,9 @@ PG_FUNCTION_INFO_V1(veil_init);
  * The boolean parameter will be false when called for initialisation,
  * and true when performing a reset.
  *
- * This function must be redefined as a custom function in your
- * implementation. 
+ * This function may be redefined as a custom function in your
+ * implementation, or will call initialisation functions registered in 
+ * the table veil.veil_init_fns.
  *
  * @param fcinfo <code>doing_reset bool</code> Whether we are being
  * called in order to reset (true) the session or (false) simply to
@@ -2331,11 +2333,16 @@ PG_FUNCTION_INFO_V1(veil_init);
 Datum
 veil_init(PG_FUNCTION_ARGS)
 {
-	ereport(ERROR,
-			(errcode(ERRCODE_INTERNAL_ERROR),
-			 errmsg("default veil version of veil_init() has been called"),
-			 errhint("You must define your own version of this function.")));
+	bool param = PG_GETARG_BOOL(0);
+	int rows = vl_call_init_fns(param);
 
+	if (rows == 0) {
+		ereport(ERROR,
+				(errcode(ERRCODE_INTERNAL_ERROR),
+				 errmsg("No user defined veil init functions found"),
+				 errhint("You must refefine veil.veil_init() or register your "
+					 "own init functions in the veil.veil_init_fns table.")));
+	}
     PG_RETURN_BOOL(true);
 }
 
@@ -2357,11 +2364,12 @@ Datum
 veil_perform_reset(PG_FUNCTION_ARGS)
 {
     bool success = true;
+	bool pushed;
     bool result;
     int  ok;
 
 	ensure_init();
-    ok = vl_spi_connect();
+    ok = vl_spi_connect(&pushed);
     if (ok != SPI_OK_CONNECT) {
 		ereport(ERROR,
 				(errcode(ERRCODE_INTERNAL_ERROR),
@@ -2371,9 +2379,9 @@ veil_perform_reset(PG_FUNCTION_ARGS)
 
     success = vl_prepare_context_switch();  
     if (success) {
-        result = vl_bool_from_query("select veil_init(TRUE)", &success);
+        result = vl_bool_from_query("select veil.veil_init(TRUE)", &success);
 		elog(NOTICE, "veil_init returns %s to veil_perform_reset", 
-			 result? "true": "false");
+			 success? "true": "false");
         success = vl_complete_context_switch();
 		elog(NOTICE, 
 			 "vl_complete_context_switch returns %s to veil_perform_reset", 
@@ -2390,7 +2398,7 @@ veil_perform_reset(PG_FUNCTION_ARGS)
 						   "is still using the previous memory context.")));
     }
 
-    ok = vl_spi_finish();
+    ok = vl_spi_finish(pushed);
     PG_RETURN_BOOL(success);
 }
 

@@ -1,5 +1,4 @@
 - Creating regression test objects...
-- Loading the veil extension...
 NOTICE:  extension "veil" does not exist, skipping
 DROP EXTENSION
 CREATE EXTENSION
@@ -49,10 +48,10 @@ TEST 1.1 ~ #1 *| *VEIL_SHMEMCTL#Initial variable listing
 - NOTE Test 1.1 will fail (correctly) if this is not a freshly created database
 -
 TEST 1.2 = #42#create session int4
-            42
+       42
 
 TEST 1.3 = #42#retrieve session int4
-            42
+       42
 
 TEST 1.4 ~ #sess_int4 *\| *Int4 *\| *f#list defined variables
  VEIL_SHMEMCTL | ShmemCtl | t
@@ -77,13 +76,13 @@ TEST 1.8 ~ #ERROR.*mismatch#access non-existant session range
 ERROR:  type mismatch in sess_range: expected Range, got Undefined
 DETAIL:  Variable sess_range is not of the expected type.
 TEST 1.9 = #14#create session range
-              14
+         14
 
 PREP
  f
 
 TEST 1.10 = #1#create shared ranged
-               1
+          1
 
 TEST 1.11 ~ #5 *| *3#list defined variables
      5 |      3
@@ -109,16 +108,16 @@ TEST 1.17 ~ #range error#attempt to set arrary element out of range
 ERROR:  Int4ArraySet range error
 DETAIL:  Index (12) not in range 17..17.  
 TEST 1.18 = #14#set int4 array element
-                 14
+            14
 
 TEST 1.19 = #14#fetch int4 array element
-                 14
+            14
 
 PREP
  t
 
 TEST 1.20 = #0#clear array and fetch element
-                  0
+             0
 
 PREP
  f
@@ -126,21 +125,21 @@ PREP
  t
 
 TEST 1.21 = #14#define and fetch from shared int4 array
-                 14
+            14
 
 TEST 1.22 = #14#shared int4 array get
-                 14
+            14
 
 PREP
-              14
+         14
 
  t
 
  t
 
-                 24
+            24
 
-                 11
+            11
 
 -
 - ...test set 1a: variables (second process)...
@@ -156,11 +155,11 @@ TEST 1.25 = #0#Before de-serialising session variables
        0
 
 PREP
-                1
-                1
-                1
-                1
-                1
+           1
+           1
+           1
+           1
+           1
 
 TEST 1.25 = #5#Checking session variables are de-serialised
        5
@@ -169,6 +168,9 @@ TEST 1.26 ~ #17 *| *17#Checking Range of range variable
   17 |  17
 
 TEST 1.27 ~ #11 *| *24#Checking Range of range2 variable
+  11 |  24
+
+TEST 1.28 = #24#Checking array2 variable(1)
 Performing regression tests...
 NOTICE:  veil_init returns true to veil_perform_reset
 NOTICE:  vl_complete_context_switch returns true to veil_perform_reset
@@ -186,14 +188,14 @@ PASS
 END TEST 1.1
 
 TEST 1.2 = #42#create session int4
-            42
+       42
 MATCH = "42"
 
 PASS
 END TEST 1.2
 
 TEST 1.3 = #42#retrieve session int4
-            42
+       42
 MATCH = "42"
 
 PASS
@@ -242,7 +244,7 @@ PASS
 END TEST 1.8
 
 TEST 1.9 = #14#create session range
-              14
+         14
 MATCH = "14"
 
 PASS
@@ -251,7 +253,7 @@ END TEST 1.9
  f
 
 TEST 1.10 = #1#create shared ranged
-               1
+          1
 MATCH = "1"
 
 PASS
@@ -307,14 +309,14 @@ PASS
 END TEST 1.17
 
 TEST 1.18 = #14#set int4 array element
-                 14
+            14
 MATCH = "14"
 
 PASS
 END TEST 1.18
 
 TEST 1.19 = #14#fetch int4 array element
-                 14
+            14
 MATCH = "14"
 
 PASS
@@ -323,7 +325,7 @@ END TEST 1.19
  t
 
 TEST 1.20 = #0#clear array and fetch element
-                  0
+             0
 MATCH = "0"
 
 PASS
@@ -334,28 +336,28 @@ END TEST 1.20
  t
 
 TEST 1.21 = #14#define and fetch from shared int4 array
-                 14
+            14
 MATCH = "14"
 
 PASS
 END TEST 1.21
 
 TEST 1.22 = #14#shared int4 array get
-                 14
+            14
 MATCH = "14"
 
 PASS
 END TEST 1.22
 
-              14
+         14
 
  t
 
  t
 
-                 24
+            24
 
-                 11
+            11
 
 TEST 1.23 ~ #4 *| *4#list all shared variables
      4 |      4
@@ -378,11 +380,11 @@ MATCH = "0"
 PASS
 END TEST 1.25
 
-                1
-                1
-                1
-                1
-                1
+           1
+           1
+           1
+           1
+           1
 
 TEST 1.25 = #5#Checking session variables are de-serialised
        5
@@ -398,27 +400,31 @@ MATCH ~ "17 |  17"
 PASS
 END TEST 1.26
 
-TEST 1.27 ~ #11 *| *24#Checking Ran  11 |  24
+TEST 1.27 ~ #11 *| *24#Checking Range of range2 variable
+  11 |  24
+MATCH ~ "11 |  24"
 
-TEST 1.28 = #24#Checking array2 variable(1)
-                 24
+PASS
+END TEST 1.27
+
+TEST 1.28 =             24
 
 TEST 1.29 = #11#Checking array2 variable(2)
-                 11
+            11
 
 TEST 1.30 = #0#Checking array2 variable(3)
-                  0
+             0
 
 - ...test set 2: bitmaps...
 PREP
-              70
+         70
 
-               2
+          2
 
  f
 
 TEST 2.1 ~ #OK#Initialise shared and session bitmaps
- OK       | t                | t
+ OK       | t           | t
 
 TEST 2.2 = #3#Populate shared bitmap
      3
@@ -446,9 +452,9 @@ TEST 2.9 ~ #3.*|.*20070#Test bitmap bits
      3 | 20070
 
 TEST 2.10 = #20070#Further test bitmap bits
-            20001
-            20002
-            20070
+       20001
+       20002
+       20070
 
 -
 - ...test set 2a: bitmaps (second process)...
@@ -456,40 +462,41 @@ PREP
  t
 
 TEST 2.11 != #20070#Check that shared bitmap has bit cleared
-            20001
-            20002
+       20001
+       20002
 
 TEST 2.12 = #2#Check that shared bitmap has other bits still set
      2
 
 PREP
-                1
+           1
 
 TEST 2.13 = #t#Test for known true values in serialised session bitmap
  t
 
 PREP
- t                | t                | t
+ t           | t           | t
 
- t                  | t                  | t                  | t
+ t             | t             | t             | t
 
- t                 | t
+ t            | t
 
 TEST 2.13 ~ #20001 *| *20003 *| *3#Check union of bitmaps
  20001 | 20003 |     3
 
 PREP
- t                     | t
+ t                | t
 
 TEST 2.14 ~ #20002 *| *20002 *| *1#Check bitmap intersection
- 20002 | 20002 |     1
-
+ERROR:  missing FROM-clause entry for table "veil"
+LINE 1: select min(veil.bitmap_bits), max(veil.bitmap_bits), count(*...
+                   ^
 -
 - ...test set 3: bitmap arrays...
 PREP
-               2
+          2
 
-              70
+         70
 
 TEST 3.1 = #t#Create bitmap array
  t
@@ -524,7 +531,7 @@ HINT:  Perhaps the name is mis-spelled, or its definition is missing from veil_i
 PREP
  session_bitmap_ref
 
- t                  | t
+ t             | t
 
 TEST 3.10 ~ #2 *| *20001 *| *20003#Add bits thru ref, check bits in array
      2 | 20001 | 20003
@@ -545,59 +552,44 @@ PREP
  t
 
 TEST 3.12 ~ #1 *| *20003 *| *20003#Intersect thru ref, check bits in array
-     1 | 20003 | 20003
-
+ERROR:  missing FROM-clause entry for table "veil"
+LINE 1: select count(*), min(veil.bitmap_array_bits), max(veil.bitma...
+                             ^
 PREP
 TEST 3.13 ~ #10001.*10002#Check array range
  10001 | 10002
 
 TEST 3.14 ~ #20001.*20070#Check bitmaps range
- 20001 | 20070
-
-PREP
- f
-
- t
-
- session_bitmap_ref
-
-ge of range2 variable
-  11 |  24
-MATCH ~ "11 |  24"
-
-PASS
-END TEST 1.27
-
-TEST 1.28 = #24#Checking array2 variable(1)
-                 24
+#24#Checking array2 variable(1)
+            24
 MATCH = "24"
 
 PASS
 END TEST 1.28
 
 TEST 1.29 = #11#Checking array2 variable(2)
-                 11
+            11
 MATCH = "11"
 
 PASS
 END TEST 1.29
 
 TEST 1.30 = #0#Checking array2 variable(3)
-                  0
+             0
 MATCH = "0"
 
 PASS
 END TEST 1.30
 
-              70
+         70
 
-               2
+          2
 
  f
 
 TEST 2.1 ~ #OK#Initialise shared and session bitmaps
- OK       | t                | t
-MATCH ~ "OK       | t                | t"
+ OK       | t           | t
+MATCH ~ "OK       | t           | t"
 
 PASS
 END TEST 2.1
@@ -659,9 +651,9 @@ PASS
 END TEST 2.9
 
 TEST 2.10 = #20070#Further test bitmap bits
-            20001
-            20002
-            20070
+       20001
+       20002
+       20070
 MATCH = "20070"
 
 PASS
@@ -670,8 +662,8 @@ END TEST 2.10
  t
 
 TEST 2.11 != #20070#Check that shared bitmap has bit cleared
-            20001
-            20002
+       20001
+       20002
 
 PASS
 END TEST 2.11
@@ -683,7 +675,7 @@ MATCH = "2"
 PASS
 END TEST 2.12
 
-                1
+           1
 
 TEST 2.13 = #t#Test for known true values in serialised session bitmap
  t
@@ -692,11 +684,11 @@ MATCH = "t"
 PASS
 END TEST 2.13
 
- t                | t                | t
+ t           | t           | t
 
- t                  | t                  | t                  | t
+ t             | t             | t             | t
 
- t                 | t
+ t            | t
 
 TEST 2.13 ~ #20001 *| *20003 *| *3#Check union of bitmaps
  20001 | 20003 |     3
@@ -705,18 +697,19 @@ MATCH ~ "20001 | 20003 |     3"
 PASS
 END TEST 2.13
 
- t                     | t
+ t                | t
 
 TEST 2.14 ~ #20002 *| *20002 *| *1#Check bitmap intersection
- 20002 | 20002 |     1
-MATCH ~ "20002 | 20002 |     1"
-
+ERROR:  missing FROM-clause entry for table "veil"
+LINE 1: select min(veil.bitmap_bits), max(veil.bitmap_bits), count(*...
+MATCH ~ "LINE 1: select min(veil.bitmap_bits), max(veil.bitmap_bits), count(*..."
+                   ^
 PASS
 END TEST 2.14
 
-               2
+          2
 
-              70
+         70
 
 TEST 3.1 = #t#Create bitmap array
  t
@@ -785,7 +778,7 @@ END TEST 3.9
 
  session_bitmap_ref
 
- t                  | t
+ t             | t
 
 TEST 3.10 ~ #2 *| *20001 *| *20003#Add bits thru ref, check bits in array
      2 | 20001 | 20003
@@ -812,39 +805,34 @@ END TEST 3.11
  t
 
 TEST 3.12 ~ #1 *| *20003 *| *20003#Intersect thru ref, check bits in array
-     1 | 20003 | 20003
-MATCH ~ "1 | 20003 | 20003"
-
+ERROR:  missing FROM-clause entry for table "veil"
+LINE 1: select count(*), min(veil.bitmap_array_bits), max(veil.bitma...
+MATCH ~ "LINE 1: select count(*), min(veil.bitmap_array_bits), max(veil.bitma..."
+                             ^
 PASS
 END TEST 3.12
 
 TEST 3.13 ~ #10001.*10002#Check array range
  10001 | 10002
-MATCH ~ "10001 | 10002"
+MATCH ~ "10001 | 1000 20001 | 20070
 
-PASS
-END TEST 3.13
-
-TEST 3.14 ~ #20001.*20070#Check bitmaps range
- 20001 | 20070
-MATCH ~ "20001 | 20070"
-
-PASS
-END TEST 3.14
-
+PREP
  f
 
  t
 
- session_bitmap_ t
+ session_bitmap_ref
+
+ t
 
 -
 - ...test set 3a: bitmap arrays (second process)...
 TEST 3.15 ~ #1 *| *20003 *| *20003#Check bits in shared bitmap array
-     1 | 20003 | 20003
-
+ERROR:  missing FROM-clause entry for table "veil"
+LINE 1: select count(*), min(veil.bitmap_array_bits), max(veil.bitma...
+                             ^
 PREP
-                1
+           1
 
 TEST 3.16 ~ #10001.*10002#Check array range after de-serialisation
  10001 | 10002
@@ -858,7 +846,7 @@ TEST 3.18 ~ #1 *\| *20003 *\| *20003#Check bits in array after de-ser.
 -
 - ...test set 4: bitmap hashes...
 PREP
-              70
+         70
 
 TEST 4.1 = #t#Create session bitmap hash
  t
@@ -894,7 +882,7 @@ HINT:  Perhaps the name is mis-spelled, or its definition is missing from veil_i
 PREP
  session_bitmap_ref
 
- t                  | t
+ t             | t
 
 TEST 4.10 ~ #2 *| *20001 *| *20003#Test bits after setting them
      2 | 20001 | 20003
@@ -916,8 +904,9 @@ PREP
  t
 
 TEST 4.12 ~ #1 *| *20003 *| *20003#Intersect and test bits
-     1 | 20003 | 20003
-
+ERROR:  missing FROM-clause entry for table "veil"
+LINE 1: select count(*), min(veil.bitmap_hash_bits), max(veil.bitmap...
+                             ^
 TEST 4.13 ~ #wibble#Test bitmap hash entry (a)
  wibble
  rubble
@@ -950,7 +939,7 @@ TEST 4.19 ~ #falsex#Check for undefined bitmap in hash
  falsex
 
 PREP
-                1
+           1
 
 TEST 4.20 = #t#Check a bit in the deserialised bitmap hash
  t
@@ -961,37 +950,39 @@ TEST 4.21 ~ #1 *| *20003 *| *20003#Count those bits
 -
 - ...test set 5: control functions...
 PREP IGNORE
-- Loading the veil extension...
-TEST 5.1 ~ #ERROR.*veil_init#Default init
-ERROR:  default veil version of veil_init() has been called
-HINT:  You must define your own version of this function.
-CONTEXT:  SQL statement "select veil_init(FALSE)"
-PREP
-TEST 5.2 = #10#Demo init
-              10
+TEST 5.1 ~ #ERROR.*veil init#Default init
+ERROR:  No user defined veil init functions found
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(FALSE)"
+2"
 
-PREP
-TEST 5.3 = #t#Reset once
-NOTICE:  veil_init returns true to veil_perform_reset
-NOTICE:  vl_complete_context_switch returns true to veil_perform_reset
+PASS
+END TEST 3.13
+
+TEST 3.14 ~ #20001.*20070#Check bitmaps range
+ 20001 | 20070
+MATCH ~ "20001 | 20070"
+
+PASS
+END TEST 3.14
+
+ f
+
  t
 
-TEST 5.4 = #1#Check variables after reset
-     1
-
-TEST 5.5 = #t#Reset again
-ref
+ session_bitmap_ref
 
  t
 
 TEST 3.15 ~ #1 *| *20003 *| *20003#Check bits in shared bitmap array
-     1 | 20003 | 20003
-MATCH ~ "1 | 20003 | 20003"
-
+ERROR:  missing FROM-clause entry for table "veil"
+LINE 1: select count(*), min(veil.bitmap_array_bits), max(veil.bitma...
+MATCH ~ "LINE 1: select count(*), min(veil.bitmap_array_bits), max(veil.bitma..."
+                             ^
 PASS
 END TEST 3.15
 
-                1
+           1
 
 TEST 3.16 ~ #10001.*10002#Check array range after de-serialisation
  10001 | 10002
@@ -1014,7 +1005,7 @@ MATCH ~ "1 | 20003 | 20003"
 PASS
 END TEST 3.18
 
-              70
+         70
 
 TEST 4.1 = #t#Create session bitmap hash
  t
@@ -1083,7 +1074,7 @@ END TEST 4.9
 
  session_bitmap_ref
 
- t                  | t
+ t             | t
 
 TEST 4.10 ~ #2 *| *20001 *| *20003#Test bits after setting them
      2 | 20001 | 20003
@@ -1111,9 +1102,10 @@ END TEST 4.11
  t
 
 TEST 4.12 ~ #1 *| *20003 *| *20003#Intersect and test bits
-     1 | 20003 | 20003
-MATCH ~ "1 | 20003 | 20003"
-
+ERROR:  missing FROM-clause entry for table "veil"
+LINE 1: select count(*), min(veil.bitmap_hash_bits), max(veil.bitmap...
+MATCH ~ "LINE 1: select count(*), min(veil.bitmap_hash_bits), max(veil.bitmap..."
+                             ^
 PASS
 END TEST 4.12
 
@@ -1174,7 +1166,7 @@ MATCH ~ "falsex"
 PASS
 END TEST 4.19
 
-                1
+           1
 
 TEST 4.20 = #t#Check a bit in the deserialised bitmap hash
  t
@@ -1190,35 +1182,23 @@ MATCH ~ "1 | 20001 | 20001"
 PASS
 END TEST 4.21
 
-TEST 5.1 ~ #ERROR.*veil_init#Default init
-ERROR:  default veil version of veil_init() has been called
-MATCH ~ "ERROR:  default veil version of veil_init() has been called"
-HINT:  You must define your own version of this function.
-CONTEXT:  SQL statement "select veil_init(FALSE)"
-PASS
-END TEST 5.1
-
+TEST 5.1 ~ #ERROR.*veil init#Default init
+ERROR:  No user defined veil init functions found
+MATCH ~ "ERROR:  No user defPREP
 TEST 5.2 = #10#Demo init
-              10
-MATCH = "10"
+         10
 
-PASS
-END TEST 5.2
-
+PREP
 TEST 5.3 = #t#Reset once
 NOTICE:  veil_init returns true to veil_perform_reset
 NOTICE:  vl_complete_context_switch returns true to veil_perform_reset
  t
-MATCH = "t"
-
-PASS
-END TEST 5.3
 
 TEST 5.4 = #1#Check variables after reset
      1
-MATCH = "1"
 
-PNOTICE:  veil_init returns true to veil_perform_reset
+TEST 5.5 = #t#Reset again
+NOTICE:  veil_init returns true to veil_perform_reset
 NOTICE:  vl_complete_context_switch returns true to veil_perform_reset
  t
 
@@ -1226,11 +1206,10 @@ TEST 5.6 = #2#Check variables again
      2
 
 PREP IGNORE
-- Loading the veil extension...
-TEST 5.7 ~ #ERROR.*veil_init#Reset with failing veil_init
-ERROR:  default veil version of veil_init() has been called
-HINT:  You must define your own version of this function.
-CONTEXT:  SQL statement "select veil_init(TRUE)"
+TEST 5.7 ~ #ERROR.*veil init#Reset with failing veil_init
+ERROR:  No user defined veil init functions found
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(TRUE)"
 TEST 5.8 ~ #^ *f *$#Failing reset (context switch was left incomplete)
 WARNING:  failed to perform reset
 DETAIL:  Unable to prepare for memory reset.  Maybe another process is performing a reset, or maybe there is a long-running transaction that is still using the previous memory context.
@@ -1241,6 +1220,8 @@ WARNING:  failed to perform reset
 DETAIL:  Unable to prepare for memory reset.  Maybe another process is performing a reset, or maybe there is a long-running transaction that is still using the previous memory context.
  f
 
+PREP IGNORE
+ERROR:  could not access file "@LIBPATH@": No such file or directory
 TEST 5.10 ~ #^ *t *$#Force reset
  t
 
@@ -1253,7 +1234,7 @@ NOTICE:  vl_complete_context_switch returns true to veil_perform_reset
 PREP
  f
 
-             100
+        100
 
  t
 
@@ -1338,7 +1319,7 @@ DETAIL:  Unable to prepare for memory reset.  Maybe another process is performin
  f
 
 PREP
-             100
+        100
 
  t
 
@@ -1389,21 +1370,33 @@ TEST 5.21 = #15#Bitmap variable from other session with bits
     15
 
 TEST 5.22 = #t#Successful reset
-    15
+ined veil init functions found"
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(FALSE)"
+PASS
+END TEST 5.1
 
+TEST 5.2 = #10#Demo init
+         10
+MATCH = "10"
+
+PASS
+END TEST 5.2
+
+TEST 5.3 = #t#Reset once
 NOTICE:  veil_init returns true to veil_perform_reset
 NOTICE:  vl_complete_context_switch returns true to veil_perform_reset
  t
+MATCH = "t"
 
-TEST 5.23 ~ #ERROR.*Undefined#No bitmap variable from other session
- f
+PASS
+END TEST 5.3
 
-ERROR:  type mismatch in bitmap_x: expected Bitmap, got Undefined
-DETAIL:  Variable bitmap_x is not of the expected type.
-TEST 5.24 = #f#Failed reset as session still in use
-WARNING:  failed to perform reset
-DETAIL:  Unable to prepare for memory reset.  Maybe another process is performing a reset, or maybe there is a long-running transaction that is still using the previous memory context.
-ASS
+TEST 5.4 = #1#Check variables after reset
+     1
+MATCH = "1"
+
+PASS
 END TEST 5.4
 
 TEST 5.5 = #t#Reset again
@@ -1422,11 +1415,11 @@ MATCH = "2"
 PASS
 END TEST 5.6
 
-TEST 5.7 ~ #ERROR.*veil_init#Reset with failing veil_init
-ERROR:  default veil version of veil_init() has been called
-MATCH ~ "ERROR:  default veil version of veil_init() has been called"
-HINT:  You must define your own version of this function.
-CONTEXT:  SQL statement "select veil_init(TRUE)"
+TEST 5.7 ~ #ERROR.*veil init#Reset with failing veil_init
+ERROR:  No user defined veil init functions found
+MATCH ~ "ERROR:  No user defined veil init functions found"
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(TRUE)"
 PASS
 END TEST 5.7
 
@@ -1448,6 +1441,7 @@ DETAIL:  Unable to prepare for memory reset.  Maybe another process is performin
 PASS
 END TEST 5.9
 
+ERROR:  could not access file "@LIBPATH@": No such file or directory
 TEST 5.10 ~ #^ *t *$#Force reset
  t
 MATCH ~ "t"
@@ -1466,7 +1460,7 @@ END TEST 5.11
 
  f
 
-             100
+        100
 
  t
 
@@ -1572,7 +1566,7 @@ DETAIL:  Unable to prepare for memory reset.  Maybe another process is performin
 PASS
 END TEST 5.17
 
-             100
+        100
 
  t
 
@@ -1628,32 +1622,21 @@ TEST 5.21 = #15#Bitmap variable from other session with bits
     15
 MATCH = "15"
 
-PASS
-END TEST 5.21
-
-TEST 5.22 = #t#Successful reset
     15
 
 NOTICE:  veil_init returns true to veil_perform_reset
 NOTICE:  vl_complete_context_switch returns true to veil_perform_reset
  t
-MATCH = "t"
-
-PASS
-END TEST 5.22
 
 TEST 5.23 ~ #ERROR.*Undefined#No bitmap variable from other session
  f
 
 ERROR:  type mismatch in bitmap_x: expected Bitmap, got Undefined
-MATCH ~ "ERROR:  type mismatch in bitmap_x: expected Bitmap, got Undefined"
 DETAIL:  Variable bitmap_x is not of the expected type.
-PASS
-END TEST 5.23
-
 TEST 5.24 = #f#Failed reset as session still in use
 WARNING:  failed to perform reset
-DETAIL:  Unable to prepare for memo f
+DETAIL:  Unable to prepare for memory reset.  Maybe another process is performing a reset, or maybe there is a long-running transaction that is still using the previous memory context.
+ f
 
 TEST 5.25 ~ #WARNING.*reset#Failed reset as session still in use (again)
 WARNING:  failed to perform reset
@@ -1661,7 +1644,7 @@ DETAIL:  Unable to prepare for memory reset.  Maybe another process is performin
  f
 
 PREP
-             100
+        100
 
  t
 
@@ -1728,11 +1711,10 @@ TEST 5.99 = #24#New bitmap created by other session
 -
 - ...test set 6: veil_init() doing something useful...
 PREP IGNORE
-- Loading the veil extension...
-TEST 6.1 ~ #ERROR.*veil_init#Default init
-ERROR:  default veil version of veil_init() has been called
-HINT:  You must define your own version of this function.
-CONTEXT:  SQL statement "select veil_init(FALSE)"
+TEST 6.1 ~ #ERROR.*veil init#Default init
+ERROR:  No user defined veil init functions found
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(FALSE)"
 PREP IGNORE
  t
 
@@ -1762,17 +1744,71 @@ TEST 6.5 ~ #shared1.*Int4.*t#Defined shared variable
  shared2 | Undefined | t
 
 -
-- ...test set 7: veil_init() triggering SPI bug...
+- ...test set 7: veil_demo...
 PREP IGNORE
-ERROR:  database "regressdb2" does not exist
-- Loading the veil extension...
-NOTICE:  extension "veil" does not exist, skipping
-ERROR:  language "plpgsql" already exists
-TEST 7.1 = #9#Test for SPI bug
-        9
+NOTICE:  drop cascades to 2 other objects
+DETAIL:  drop cascades to function veil.veil_init1(boolean)
+drop cascades to function veil.veil_init2(boolean)
+TEST 7.1 ~ #ERROR.*veil init#Default init
+ERROR:  No user defined veil init functions found
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(FALSE)"
+TEST 7.2 ~ #10#veil_demo init
+         10
 
+TEST 7.3 ~ #0#Not connected
+     0
+
+TEST 7.4 ~ #t#connect_person
+ t
+
+TEST 7.5 ~ #1#non-privileged access
+     1
+
+PREP IGNORE
+ t
+
+TEST 7.6 ~ #6#privileged access
+     6
+
+PREP IGNORE
+ f
+
+TEST 7.7 ~ #0#Disconnect
+     0
+
+PREP IGNORE
+TEST 7.8 ~ #ERROR.*veil init#Drop veil_demo (default init)
+ERROR:  No user defined veil init functions found
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(TRUE)"
 COMPLETE
-ry reset.  Maybe another process is performing a reset, or maybe there is a long-running transaction that is still using the previous memory context.
+PASS
+END TEST 5.21
+
+TEST 5.22 = #t#Successful reset
+    15
+
+NOTICE:  veil_init returns true to veil_perform_reset
+NOTICE:  vl_complete_context_switch returns true to veil_perform_reset
+ t
+MATCH = "t"
+
+PASS
+END TEST 5.22
+
+TEST 5.23 ~ #ERROR.*Undefined#No bitmap variable from other session
+ f
+
+ERROR:  type mismatch in bitmap_x: expected Bitmap, got Undefined
+MATCH ~ "ERROR:  type mismatch in bitmap_x: expected Bitmap, got Undefined"
+DETAIL:  Variable bitmap_x is not of the expected type.
+PASS
+END TEST 5.23
+
+TEST 5.24 = #f#Failed reset as session still in use
+WARNING:  failed to perform reset
+DETAIL:  Unable to prepare for memory reset.  Maybe another process is performing a reset, or maybe there is a long-running transaction that is still using the previous memory context.
  f
 MATCH = "f"
 
@@ -1788,7 +1824,7 @@ DETAIL:  Unable to prepare for memory reset.  Maybe another process is performin
 PASS
 END TEST 5.25
 
-             100
+        100
 
  t
 
@@ -1859,11 +1895,11 @@ MATCH = "24"
 PASS
 END TEST 5.99
 
-TEST 6.1 ~ #ERROR.*veil_init#Default init
-ERROR:  default veil version of veil_init() has been called
-MATCH ~ "ERROR:  default veil version of veil_init() has been called"
-HINT:  You must define your own version of this function.
-CONTEXT:  SQL statement "select veil_init(FALSE)"
+TEST 6.1 ~ #ERROR.*veil init#Default init
+ERROR:  No user defined veil init functions found
+MATCH ~ "ERROR:  No user defined veil init functions found"
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(FALSE)"
 PASS
 END TEST 6.1
 
@@ -1909,20 +1945,75 @@ MATCH ~ "shared1 | Int4      | t"
 PASS
 END TEST 6.5
 
-ERROR:  database "regressdb2" does not exist
-NOTICE:  extension "veil" does not exist, skipping
-ERROR:  language "plpgsql" already exists
-TEST 7.1 = #9#Test for SPI bug
-        9
-MATCH = "9"
-
-COMPLETE
+NOTICE:  drop cascades to 2 other objects
+DETAIL:  drop cascades to function veil.veil_init1(boolean)
+drop cascades to function veil.veil_init2(boolean)
+TEST 7.1 ~ #ERROR.*veil init#Default init
+ERROR:  No user defined veil init functions found
+MATCH ~ "ERROR:  No user defined veil init functions found"
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(FALSE)"
 PASS
 END TEST 7.1
 
+TEST 7.2 ~ #10#veil_demo init
+         10
+MATCH ~ "10"
 
-tests:     117
-passed:    117
+PASS
+END TEST 7.2
+
+TEST 7.3 ~ #0#Not connected
+     0
+MATCH ~ "0"
+
+PASS
+END TEST 7.3
+
+TEST 7.4 ~ #t#connect_person
+ t
+MATCH ~ "t"
+
+PASS
+END TEST 7.4
+
+TEST 7.5 ~ #1#non-privileged access
+     1
+MATCH ~ "1"
+
+PASS
+END TEST 7.5
+
+ t
+
+TEST 7.6 ~ #6#privileged access
+     6
+MATCH ~ "6"
+
+PASS
+END TEST 7.6
+
+ f
+
+TEST 7.7 ~ #0#Disconnect
+     0
+MATCH ~ "0"
+
+PASS
+END TEST 7.7
+
+TEST 7.8 ~ #ERROR.*veil init#Drop veil_demo (default init)
+ERROR:  No user defined veil init functions found
+MATCH ~ "ERROR:  No user defined veil init functions found"
+HINT:  You must refefine veil.veil_init() or register your own init functions in the veil.veil_init_fns table.
+CONTEXT:  SQL statement "select veil.veil_init(TRUE)"
+COMPLETE
+PASS
+END TEST 7.8
+
+
+tests:     124
+passed:    124
 failed:    0
 
 - Dropping regressdb...

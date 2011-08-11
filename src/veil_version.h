@@ -13,7 +13,7 @@
 
 /** The version number for this version of veil
  */
-#define VEIL_VERSION "1.0.0"
+#define VEIL_VERSION "9.1.0"
 /** The version number suffix, indicating stability.
  */
 #define VEIL_VERSION_INFO "Stable"

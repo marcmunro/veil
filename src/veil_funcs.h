@@ -64,10 +64,11 @@ extern void vl_free(void *mem);
 extern void _PG_init(void);
 
 /* veil_query */
-extern int vl_spi_connect(void);
-extern int vl_spi_finish(void);
+extern int vl_spi_connect(bool *p_pushed);
+extern int vl_spi_finish(bool pushed);
 extern bool vl_bool_from_query(const char *qry, bool *result);
 extern bool vl_db_exists(Oid db_id);
+extern int  vl_call_init_fns(bool param);
 
 /* veil_config */
 extern void veil_config_init(void);

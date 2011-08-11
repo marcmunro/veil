@@ -11,7 +11,7 @@
 
 
 /*! \mainpage Veil
-\version 1.0.0 (Stable))
+\version 9.1.0 (Stable))
 \section license License
 BSD
 \section intro_sec Introduction
@@ -69,13 +69,13 @@ As an example let's assume that we have a secured view, users, that
 allows a user to see only their own record.  When Alice queries the
 view, she will see this:
 
-\code
+\verbatim
 select * from users;
 
   userid  |   username
 ----------+-----------
    12345  |   Alice
-\endcode
+\endverbatim
 
 Alice should not be able to see any details for Bob or even, strictly
 speaking, tell whether there is an entry for Bob.  This query though:
@@ -107,7 +107,7 @@ the where clause, if the function is deemed inexpensive enough, will see
 every row in the table and so will be able to leak supposedly protected
 data.  This type of exploit can be protected against easily enough by
 preventing users from defining their own functions, however there are
-postgres' builtins that can be potentially be exploited in the same way.
+postgres builtins that can be potentially be exploited in the same way.
 
 \subsection GoodNews The Good News
 
@@ -159,12 +159,10 @@ create table persons (
 The secured view would be defined something like this:
 \verbatim
 create view persons(
-       person_id,
-       person_name) as
-select person_id,
-       person_name
-from   persons
-where  i_have_personal_priv(10013, person_id);
+       person_id, person_name) as
+select person_id, person_name
+  from persons
+ where i_have_personal_priv(10013, person_id);
 \endverbatim
 
 A query performed on the view will return rows only for those persons
@@ -269,7 +267,7 @@ given context.  There are three types of security context:
    data about a staff member.  Note that determining a user's access
    rights in a relational context may require extra queries to be
    performed for each function call.  Your design should aim to minimise
-   this.  Some applications may require a number of distinct relational 
+   this.  Some applications may require several distinct relational 
    contexts.
 
 \subsection over-funcs2 Access Functions and Security Contexts
@@ -374,6 +372,8 @@ sections
 - \subpage API-serialisation
 - \subpage API-control
 
+Note that all veil objects are placed in the veil schema.
+
 \section API-intro Veil API Overview
 Veil is an API that simply provides a set of state variable types, and 
 operations on those variable types, which are optimised for privilege
@@ -409,8 +409,8 @@ Shared variables are global across all sessions.  Once a shared variable
 is defined, all sessions will have access to it.  Shared variables are
 defined in two steps.  First, the variable is defined as shared, and
 then it is initialised and accessed in the same way as for session
-variables.  Note that shared variables should only be modified within
-the function veil_init().
+variables.  Note that shared variables should only be created within
+\ref API-control-registered-init or \ref API-control-init.
 
 Note that bitmap refs and bitmap hashes may not be stored in shared
 variables.
@@ -434,28 +434,30 @@ Note again that session variables are created on usage.  Their is no
 specific function for creating a variable in the variables API.  For an
 example of a function to create a variable see \ref API-bitmap-init.
 
-\section API-variables-share veil_share(name text)
-\code
-function veil_share(name text) returns bool
-\endcode
+\section API-variables-share share(name text)
+\verbatim
+function veil.share(name text) returns bool
+\endverbatim
 
-This is used to define a specific variable as being shared.  A shared
-variable is accessible to all sessions and exists to reduce the need for
-multiple copies of identical data.  For instance in the Veil demo,
-role_privileges are recorded in a shared variable as they will be
-identical for all sessions, and to create a copy for each session  would
-be an unnecessary overhead.  This function should only be called from
-veil_init().
+Implemented by C function veil_share(), this is used to define a
+specific variable as being shared.  A shared variable is accessible to
+all sessions and exists to reduce the need for multiple copies of
+identical data.  For instance in the Veil demo, role_privileges are
+recorded in a shared variable as they will be identical for all
+sessions, and to create a copy for each session would be an unnecessary
+overhead.  This function should only be called from 
+\ref API-control-registered-init or \ref API-control-init. 
 
 \section API-variables-var veil_variables()
-\code
-function veil_variables() returns setof veil_variable_t
-\endcode
+\verbatim
+function veil.veil_variables() returns setof veil_variable_t
+\endverbatim
 
-This function returns a description for each variable known to the
-session.  It provides the name, the type, and whether the variable is
-shared.  It is primarily intended for interactive use when developing
-and debugging Veil-based systems.
+This function, implemented by C function veil_variables(), returns a
+description for each variable known to the session.  It provides the
+name, the type, and whether the variable is shared.  It is primarily
+intended for interactive use when developing and debugging Veil-based
+systems.
 
 Next: \ref API-simple
 */
@@ -464,8 +466,20 @@ Next: \ref API-simple
 Veil's basic types are those that do not contain repeating groups
 (arrays, hashes, etc).  
 
-Ranges consist of a pair of values and are generally used to initialise
-the bounds of array and bitmap types.  Ranges may not contain nulls.
+Ranges, implemented by the type \ref veil_range_t,
+consist of a pair of values and are generally used to initialise the
+bounds of array and bitmap types.
+
+\anchor veil_range_t \ref veil_range_t is defined as:
+
+\verbatim
+create type veil.veil_range_t as (
+    min  int4,
+    max  int4
+);
+\endverbatim
+
+Ranges may not contain nulls.
 
 The int4 type is used to record a simple nullable integer.  This is
 typically used to record the id of the connected user in a session.
@@ -477,34 +491,37 @@ The following functions comprise the Veil basic types API:
 - <code>\ref API-basic-int4-set</code>
 - <code>\ref API-basic-int4-get</code>
 
-\section API-basic-init-range veil_init_range(name text, min int4, max int4)
-\code
-function veil_init_range(name text, min int4, max int4) returns int4
-\endcode
+\section API-basic-init-range init_range(name text, min int4, max int4)
+\verbatim
+function veil.init_range(name text, min int4, max int4) returns int4
+\endverbatim
 
-This defines a range, and returns the extent of that range.
+This, implemented by veil_init_range() defines a range, and returns the
+extent of that range.
 
-\section API-basic-range veil_range(name text)
-\code
-function veil_range(name text) returns veil_range_t
-\endcode
+\section API-basic-range range(name text)
+\verbatim
+function veil.range(name text) returns veil.range_t
+\endverbatim
 
-This returns the contents of a range.  It is intended primarily for
-interactive use.
+This, implemented by C function veil_range() returns the contents
+of a range.  It is intended primarily for interactive use.
 
-\section API-basic-int4-set veil_int4_set(text, int4)
-\code
-function veil_int4_set(text, int4) returns int4
-\endcode
+\section API-basic-int4-set int4_set(name text, value int4)
+\verbatim
+function veil.int4_set(name text, value int4) returns int4
+\endverbatim
 
-Sets an int4 variable to a value, returning that same value.
+Sets an int4 variable to a value, returning that same value.  It is
+implemented by C function veil_int4_set().
 
-\section API-basic-int4-get veil_int4_get(text)
-\code
-function veil_int4_get(text) returns int4
-\endcode
+\section API-basic-int4-get int4_get(name text)
+\verbatim
+function veil.int4_get(name text) returns int4
+\endverbatim
 
-Returns the value of an int4 variable.
+Returns the value of the int4 variable given by name.  Implemented by C
+function veil_int4_get().
 
 
 Next: \ref API-bitmaps
@@ -536,64 +553,74 @@ The following functions comprise the Veil bitmaps API:
 - <code>\ref API-bitmap-bits</code>
 - <code>\ref API-bitmap-range</code>
 
-\section API-bitmap-init veil_init_bitmap(bitmap_name text, range_name text)
-\code
-function veil_init_bitmap(bitmap_name text, range_name text) returns bool
-\endcode
+\section API-bitmap-init init_bitmap(bitmap_name text, range_name text)
+\verbatim
+function veil.init_bitmap(bitmap_name text, range_name text) returns bool
+\endverbatim
 This is used to create or resize a bitmap.  The first parameter provides
 the name of the bitmap, the second is the name of a range variable that
-will govern the size of the bitmap.
+will govern the size of the bitmap.  It is implemented by C function
+veil_init_bitmap().
 
-\section API-bitmap-clear veil_clear_bitmap(name text)
-\code
-function veil_clear_bitmap(name text) returns bool
-\endcode
-This is used to clear (set to zero) all bits in the bitmap.
+\section API-bitmap-clear clear_bitmap(bitmap_name text)
+\verbatim
+function veil.clear_bitmap(bitmap_name text) returns bool
+\endverbatim
+This is used to clear (set to zero) all bits in the bitmap.  It is
+implemented by C function veil_clear_bitmap().
 
-\section API-bitmap-setbit veil_bitmap_setbit(name text, bit_number int4)
-\code
-function veil_bitmap_setbit(text, int4) returns bool
-\endcode
-This is used to set a specified bit in a bitmap.
+\section API-bitmap-setbit bitmap_setbit(bitmap_name text, bit_number int4)
+\verbatim
+function veil.bitmap_setbit(bitmap_name text, bit_number int4) returns bool
+\endverbatim
+This is used to set a specified bit, given by bit_number in the bitmap
+identified by bitmap_name.  It is implemented by C function
+veil_bitmap_setbit().
 
-\section API-bitmap-clearbit veil_bitmap_clearbit(name text, bit_number int4)
-\code
-function veil_bitmap_clearbit(name text, bit_number int4) returns bool
-\endcode
-This is used to clear (set to zero) a specified bit in a bitmap.
+\section API-bitmap-clearbit bitmap_clearbit(bitmap_name text, bit_number int4)
+\verbatim
+function veil.bitmap_clearbit(bitmap_name text, bit_number int4) returns bool
+\endverbatim
+This is used to clear (set to zero) a specified bit in a bitmap.  It is
+implemented by C function veil_bitmap_clearbit().
 
-\section API-bitmap-testbit veil_bitmap_testbit(name text, bit_number int4)
-\code
-function veil_bitmap_testbit(name text, bit_number int4) returns bool
-\endcode
+\section API-bitmap-testbit bitmap_testbit(bitmap_name text, bit_number int4)
+\verbatim
+function veil.bitmap_testbit(bitmap_name text, bit_number int4) returns bool
+\endverbatim
 This is used to test a specified bit in a bitmap.  It returns true if
-the bit is set, false otherwise.
+the bit is set, false otherwise.  It is implemented by C function
+veil_bitmap_testbit().
 
-\section API-bitmap-union veil_bitmap_union(result_name text, name2 text)
-\code
-function veil_bitmap_union(result_name text, name2 text) returns bool
-\endcode
+\section API-bitmap-union bitmap_union(result_name text, bm2_name text)
+\verbatim
+function veil.bitmap_union(result_name text, bm2_name text) returns bool
+\endverbatim
 Form the union of two bitmaps with the result going into the first.
+Implemented by C function veil_bitmap_union().
 
-\section API-bitmap-intersect veil_bitmap_intersect(result_name text, name2 text)
-\code
-function veil_bitmap_intersect(result_name text, name2 text) returns bool
-\endcode
-Form the intersection of two bitmaps with the result going into the first.
+\section API-bitmap-intersect bitmap_intersect(result_name text, bm2_name text)
+\verbatim
+function veil.bitmap_intersect(result_name text, bm2_name text) returns bool
+\endverbatim
+Form the intersection of two bitmaps with the result going into the
+first.  Implemented by C function veil_bitmap_intersect().
 
-\section API-bitmap-bits veil_bitmap_bits(name text)
-\code
-function veil_bitmap_bits(name text) returns setof int4
-\endcode
+\section API-bitmap-bits bitmap_bits(bitmap_name text)
+\verbatim
+function veil.bitmap_bits(bitmap_name text) returns setof int4
+\endverbatim
 This is used to list all bits set within a bitmap.  It is primarily for
 interactive use during development and debugging of Veil-based systems.
+It is implemented by C function veil_bitmap_bits().
 
-\section API-bitmap-range veil_bitmap_range(name text)
-\code
-function veil_bitmap_range(name text) returns veil_range_t
-\endcode
-This returns the range of a bitmap.  It is primarily intended for
-interactive use.
+\section API-bitmap-range bitmap_range(bitmap_name text)
+\verbatim
+function veil.bitmap_range(bitmap_name text) returns veil.range_t
+\endverbatim
+This returns the range, as a \ref veil_range_t, of a
+bitmap.  It is primarily intended for interactive use.  It is
+implemented by C function veil_bitmap_range().
 
 Next: \ref API-bitmap-arrays
 */
@@ -620,85 +647,100 @@ The following functions comprise the Veil bitmap arrays API:
 - <code>\ref API-bmarray-arange</code>
 - <code>\ref API-bmarray-brange</code>
 
-\section API-bmarray-init veil_init_bitmap_array(bmarray text, array_range text, bitmap_range text)
-\code
-function veil_init_bitmap_array(bmarray text, array_range text, bitmap_range text) returns bool
-\endcode
-Creates or resets (clears) a bitmap array.
+\section API-bmarray-init init_bitmap_array(bmarray text, array_range text, bitmap_range text)
+\verbatim
+function veil.init_bitmap_array(bmarray text, array_range text, bitmap_range text) returns bool
+\endverbatim
+Creates or resets (clears) the bitmap array named <code>bmarray</code>.
+The last two parameters are the names of ranges used to bound the
+dimensions of the array, and the range of bits within the array's
+bitmaps.  Implemented by C function veil_init_bitmap_array().
 
-\section API-bmarray-clear veil_clear_bitmap_array(bmarray text)
-\code
-function veil_clear_bitmap_array(bmarray text) returns bool
-\endcode
-Clear all bits in all bitmaps of a bitmap array
+\section API-bmarray-clear clear_bitmap_array(bmarray text)
+\verbatim
+function veil.clear_bitmap_array(bmarray text) returns bool
+\endverbatim
+Clear all bits in all bitmaps of the bitmap array named
+<code>bmarray</code>.  Implemented by C function veil_clear_bitmap_array().
 
-\section API-bmarray-bmap veil_bitmap_from_array(bmref text, bmarray text, index int4)
-\code
-function veil_bitmap_from_array(bmref text, bmarray text, index int4) returns text
-\endcode
-Generate a reference to a specific bitmap in a bitmap array
+\section API-bmarray-bmap bitmap_from_array(bmref_name text, bmarray text, index int4)
+\verbatim
+function veil.bitmap_from_array(bmref_name text, bmarray text, index int4) returns text
+\endverbatim
+Place a reference into <code>bmref_name</code> to the bitmap identified
+by <code>index</code> in bitmap array <code>bmarray</code>.  Implemented
+by C function veil_bitmap_from_array().
 
-\section API-bmarray-testbit veil_bitmap_array_testbit(bmarray text, arr_idx int4, bitno int4)
-\code
-function veil_bitmap_array_testbit(bmarray text, arr_idx int4, bitno int4) returns bool
-\endcode
-Test a specific bit in a bitmap array.
+\section API-bmarray-testbit bitmap_array_testbit(bmarray text, arr_idx int4, bitno int4)
+\verbatim
+function veil.bitmap_array_testbit(bmarray text, arr_idx int4, bitno int4) returns bool
+\endverbatim
+Test a specific bit in a bitmap array.  Implemented by C function
+veil_bitmap_array_testbit().
 
-\section API-bmarray-setbit veil_bitmap_array_setbit(bmarray text, arr_idx int4, bitno int4)
-\code
-function veil_bitmap_array_setbit(bmarray text, arr_idx int4, bitno int4) returns bool
-\endcode
-Set a specific bit in a bitmap array.
+\section API-bmarray-setbit bitmap_array_setbit(bmarray text, arr_idx int4, bitno int4)
+\verbatim
+function veil.bitmap_array_setbit(bmarray text, arr_idx int4, bitno int4) returns bool
+\endverbatim
+Set a specific bit in a bitmap array.  Implemented by C function
+veil_bitmap_array_setbit().
 
-\section API-bmarray-clearbit veil_bitmap_array_clearbit(bmarray text, arr_idx int4, bitno int4)
-\code
-function veil_bitmap_array_clearbit(bmarray text, arr_idx int4, bitno int4) returns bool
-\endcode
-Clear a specific bit in a bitmap array.
+\section API-bmarray-clearbit bitmap_array_clearbit(bmarray text, arr_idx int4, bitno int4)
+\verbatim
+function veil.bitmap_array_clearbit(bmarray text, arr_idx int4, bitno int4) returns bool
+\endverbatim
+Clear a specific bit in a bitmap array.  Implemented by C function
+veil_bitmap_array_clearbit().
 
-\section API-bmarray-union veil_union_from_bitmap_array(bitmap text, bmarray text, arr_idx int4)
-\code
-function veil_union_from_bitmap_array(bitmap text, bmarray text, arr_idx int4) returns bool
-\endcode
+\section API-bmarray-union union_from_bitmap_array(bitmap text, bmarray text, arr_idx int4)
+\verbatim
+function veil.union_from_bitmap_array(bitmap text, bmarray text, arr_idx int4) returns bool
+\endverbatim
 Union a bitmap with a specified bitmap from an array, with the result in
-the bitmap.  This is a faster shortcut for:
+the bitmap.    Implemented by C function
+veil_union_from_bitmap_array().  This is a faster shortcut for the
+following logical construction:
 
-<code>
-veil_bitmap_union(&lt;bitmap>, veil_bitmap_from_array(&lt;bitmap_array>, &lt;index>))
-</code>.
+\verbatim
+veil.bitmap_union(<bitmap>, veil.bitmap_from_array(<bitmap_array>, <index>))
+\endverbatim
 
-\section API-bmarray-intersect veil_intersect_from_bitmap_array(bitmap text, bmarray text, arr_idx int4)
-\code
-function veil_intersect_from_bitmap_array(bitmap text, bmarray text, arr_idx int4) returns bool
-\endcode
+\section API-bmarray-intersect intersect_from_bitmap_array(bitmap text, bmarray text, arr_idx int4)
+\verbatim
+function veil.intersect_from_bitmap_array(bitmap text, bmarray text, arr_idx int4) returns bool
+\endverbatim
 Intersect a bitmap with a specified bitmap from an array, with the result in
-the bitmap.  This is a faster shortcut for:
+the bitmap.    Implemented by C function
+veil_intersect_from_bitmap_array().  This is a faster shortcut for the
+following logical construction:
 
-<code>
-veil_bitmap_intersect(&lt;bitmap>, veil_bitmap_from_array(&lt;bitmap_array>, &lt;index>))
-</code>.
+\verbatim
+veil.bitmap_intersect(<bitmap>, veil.bitmap_from_array(<bitmap_array>,<index>))
+\endverbatim
 
-\section API-bmarray-bits veil_bitmap_array_bits(bmarray text, arr_idx int4)
-\code
-function veil_bitmap_array_bits(bmarray text, arr_idx int4) returns setof int4
-\endcode
+\section API-bmarray-bits bitmap_array_bits(bmarray text, arr_idx int4)
+\verbatim
+function veil.bitmap_array_bits(bmarray text, arr_idx int4) returns setof int4
+\endverbatim
 Show all bits in the specific bitmap within an array.  This is primarily
 intended for interactive use when developing and debugging Veil-based
-systems.
+systems.  Implemented by C function veil_bitmap_array_bits().
 
-\section API-bmarray-arange veil_bitmap_array_arange(bmarray text)
-\code
-function veil_bitmap_array_arange(bmarray text) returns veil_range_t
-\endcode
-Show the range of array indices for the specified bitmap array.
-Primarily for interactive use.
+\section API-bmarray-arange bitmap_array_arange(bmarray text)
+\verbatim
+function veil.bitmap_array_arange(bmarray text) returns veil_range_t
+\endverbatim
+Return the range of array indices, as a \ref veil_range_t, for the
+specified bitmap array.  Primarily for interactive use.  Implemented by
+C function veil_bitmap_array_arange().
 
-\section API-bmarray-brange veil_bitmap_array_brange(bmarray text)
-\code
-function veil_bitmap_array_brange(bmarray text) returns veil_range_t
-\endcode
-Show the range of all bitmaps in the specified bitmap array.
-Primarily for interactive use.
+\section API-bmarray-brange bitmap_array_brange(bmarray text)
+\verbatim
+function veil.bitmap_array_brange(bmarray text) returns veil_range_t
+\endverbatim
+Show the range, as a \ref veil_range_t, of all bitmaps in the specified
+bitmap array.  Primarily for interactive use.  Implemented by
+C function veil_bitmap_array_range().
 
 
 Next: \ref API-bitmap-hashes
@@ -728,101 +770,116 @@ The following functions comprise the Veil bitmap hashes API:
 - <code>\ref API-bmhash-range</code>
 - <code>\ref API-bmhash-entries</code>
 
-\section API-bmhash-init veil_init_bitmap_hash(bmhash text, range text)
-\code
-function veil_init_bitmap_hash(bmhash text, range text) returns bool
-\endcode
-Creates, or resets, a bitmap hash.
+\section API-bmhash-init init_bitmap_hash(bmhash text, range text)
+\verbatim
+function veil.init_bitmap_hash(bmhash text, range text) returns bool
+\endverbatim
+Creates, or resets, a bitmap hash.  Implemented by
+C function veil_init_bitmap_hash().
 
-\section API-bmhash-clear veil_clear_bitmap_hash(bmhash text)
-\code
-function veil_clear_bitmap_hash(bmhash text) returns bool
-\endcode
-Clear all bits in a bitmap hash.
+\section API-bmhash-clear clear_bitmap_hash(bmhash text)
+\verbatim
+function veil.clear_bitmap_hash(bmhash text) returns bool
+\endverbatim
+Clear all bits in all bitmaps of a bitmap hash.  Implemented by
+C function veil_clear_bitmap_hash().  Implemented by
+C function veil_clear_bitmap_hash().
 
-\section API-bmhash-key-exists veil_bitmap_hash_key_exists(bmhash text, key text)
-\code
-function veil_bitmap_hash_key_exists(bmhash text, key text) returns bool
-\endcode
+\section API-bmhash-key-exists bitmap_hash_key_exists(bmhash text, key text)
+\verbatim
+function veil.bitmap_hash_key_exists(bmhash text, key text) returns bool
+\endverbatim
 Determine whether a given key exists in the hash (contains a bitmap).
+Implemented by C function veil_bitmap_hash_key_exists().
 
-\section API-bmhash-from veil_bitmap_from_hash(text, text, text)
-\code
-function veil_bitmap_from_hash(text, text, text) returns text
-\endcode
-Generate a reference to a specific bitmap in a bitmap hash.
+\section API-bmhash-from bitmap_from_hash(bmref text, bmhash text, key text)
+\verbatim
+function veil.bitmap_from_hash(bmref text, bmhash text, key text) returns text
+\endverbatim
+Generate a reference to a specific bitmap in a bitmap hash.  Implemented by
+C function veil_bitmap_from_hash().
 
-\section API-bmhash-testbit veil_bitmap_hash_testbit(text, text, int4)
-\code
-function veil_bitmap_hash_testbit(text, text, int4) returns bool
-\endcode
-Test a specific bit in a bitmap hash.
+\section API-bmhash-testbit bitmap_hash_testbit(bmhash text, key text, bitno int4)
+\verbatim
+function veil.bitmap_hash_testbit(bmhash text, key text, bitno int4) returns bool
+\endverbatim
+Test a specific bit in a bitmap hash.  Implemented by
+C function veil_bitmap_hash_testbit().
 
-\section API-bmhash-setbit veil_bitmap_hash_setbit(text, text, int4)
-\code
-function veil_bitmap_hash_setbit(text, text, int4) returns bool
-\endcode
-Set a specific bit in a bitmap hash.
+\section API-bmhash-setbit bitmap_hash_setbit(bmhash text, kay text, bitno int4)
+\verbatim
+function veil.bitmap_hash_setbit(bmhash text, key text, bitno int4) returns bool
+\endverbatim
+Set a specific bit in a bitmap hash.  Implemented by
+C function veil_bitmap_hash_setbit().
 
-\section API-bmhash-clearbit veil_bitmap_hash_clearbit(text, text, int4)
-\code
-function veil_bitmap_hash_clearbit(text, text, int4) returns bool
-\endcode
-Clear a specific bit in a bitmap hash.
+\section API-bmhash-clearbit bitmap_hash_clearbit(bmhash text, key text, bitno int4)
+\verbatim
+function veil.bitmap_hash_clearbit(bmhash text, key text, bitno int4) returns bool
+\endverbatim
+Clear a specific bit in a bitmap hash.  Implemented by
+C function veil_bitmap_hash_clearbit().
 
-\section API-bmhash-union-into veil_union_into_bitmap_hash(text, text, text)
-\code
-function veil_union_into_bitmap_hash(text, text, text) returns bool
-\endcode
+\section API-bmhash-union-into union_into_bitmap_hash(bmhash text, key text, bitmap text)
+\verbatim
+function veil.union_into_bitmap_hash(bmhash text, key text, bitmap text) returns bool
+\endverbatim
 Union a specified bitmap from a hash with a bitmap, with the result in
-the bitmap hash.  This is a faster shortcut for:
+the bitmap hash.  Implemented by C function
+veil_union_into_bitmap_hash().  This is a faster shortcut for the
+following logical construction:
 
-<code>
-veil_bitmap_union(veil_bitmap_from_hash(&lt;bitmap_hash>, &lt;key>), &lt;bitmap>)
-</code>.
+\verbatim
+veil.bitmap_union(veil.bitmap_from_hash(<bitmap_hash>, <key>), <bitmap>)
+\endverbatim
 
-\section API-bmhash-union-from veil_union_from_bitmap_hash(text, text, text)
-\code
-function veil_union_from_bitmap_hash(text, text, text) returns bool
-\endcode
+\section API-bmhash-union-from union_from_bitmap_hash(bmhash text, key text, bitmap text)
+\verbatim
+function veil.union_from_bitmap_hash(bmhash text, key text, bitmap text) returns bool
+\endverbatim
 Union a bitmap with a specified bitmap from a hash, with the result in
-the bitmap.  This is a faster shortcut for:
+the bitmap.  Implemented by C function veil_union_from_bitmap_hash().
+This is a faster shortcut for the following logical construction:
 
-<code>
-veil_bitmap_union(&lt;bitmap>, veil_bitmap_from_hash(&lt;bitmap_array>, &lt;key>))
-</code>.
+\verbatim
+veil.bitmap_union(<bitmap>, veil.bitmap_from_hash(<bitmap_array>, <key>))
+\endverbatim
 
-\section API-bmhash-intersect-from veil_intersect_from_bitmap_hash(text, text, text)
-\code
-function veil_intersect_from_bitmap_hash(text, text, text) returns bool
-\endcode
-Intersect a bitmap with a specified bitmap from a hash, with the result in
-the bitmap.  This is a faster shortcut for:
+\section API-bmhash-intersect-from intersect_from_bitmap_hash(bitmap text, bmhash text, key text)
+\verbatim
+function veil.intersect_from_bitmap_hash(bitmap text, bmhash text, key text) returns bool
+\endverbatim
+Intersect a bitmap with a specified bitmap from a hash, with the result
+in the bitmap.  Implemented by C function
+veil_intersect_from_bitmap_hash().  This is a faster shortcut for the
+following logical construction:
 
-<code>
-veil_bitmap_intersect(&lt;bitmap>, veil_bitmap_from_hash(&lt;bitmap_array>, &lt;key>))
-</code>.
+\verbatim
+veil.bitmap_intersect(<bitmap>, veil.bitmap_from_hash(<bitmap_array>, <key>))
+\endverbatim
 
-\section API-bmhash-bits veil_bitmap_hash_bits(text, text)
-\code
-function veil_bitmap_hash_bits(text, text) returns setof int4
-\endcode
+\section API-bmhash-bits bitmap_hash_bits(bmhash text, key text)
+\verbatim
+function veil.bitmap_hash_bits(bmhash text, key text) returns setof int4
+\endverbatim
 Show all bits in the specific bitmap within a hash.  This is primarily
 intended for interactive use when developing and debugging Veil-based
-systems.
+systems.  Implemented by C function veil_bitmap_hash_bits().
 
-\section API-bmhash-range veil_bitmap_hash_range(text)
-\code
-function veil_bitmap_hash_range(text) returns veil_range_t
-\endcode
-Show the range of all bitmaps in the hash.  Primarily intended for
-interactive use. 
+\section API-bmhash-range bitmap_hash_range(bmhash text)
+\verbatim
+function veil.bitmap_hash_range(bmhash text) returns veil_range_t
+\endverbatim
+Show the range, as a \ref veil_range_t, of all bitmaps in the hash.
+Primarily intended for interactive use.   Implemented by
+C function veil_bitmap_hash_range().
 
-\section API-bmhash-entries veil_bitmap_hash_entries(text)
-\code
-function veil_bitmap_hash_entries(text) returns setof text
-\endcode
+\section API-bmhash-entries bitmap_hash_entries(bmhash text)
+\verbatim
+function veil.bitmap_hash_entries(bmhash text) returns setof text
+\endverbatim
 Show every key in the hash.  Primarily intended for interactive use.
+Implemented by C function veil_bitmap_hash_entries().
 
 Next: \ref API-int-arrays
 */
@@ -842,29 +899,33 @@ The following functions comprise the Veil int arrays API:
 - <code>\ref API-intarray-set</code>
 - <code>\ref API-intarray-get</code>
 
-\section API-intarray-init veil_init_int4array(text, text)
-\code
-function veil_init_int4array(text, text) returns bool
-\endcode
-Creates, or resets the ranges of, an int array.
+\section API-intarray-init init_int4array(arrayname text, range text)
+\verbatim
+function veil.init_int4array(arrayname text, range text) returns bool
+\endverbatim
+Creates, or resets the ranges of, an int array.  Implemented by
+C function veil_init_int4array().
 
-\section API-intarray-clear veil_clear_int4array(text)
-\code
-function veil_clear_int4array(text) returns bool
-\endcode
-Clears (zeroes) an int array.
+\section API-intarray-clear clear_int4array(arrayname text)
+\verbatim
+function veil.clear_int4array(arrayname text) returns bool
+\endverbatim
+Clears (zeroes) an int array.  Implemented by
+C function veil_clear_int4array().
 
-\section API-intarray-set veil_int4array_set(text, int4, int4)
-\code
-function veil_int4array_set(text, int4, int4) returns int4
-\endcode
-Set the value of an element in an int array.
+\section API-intarray-set int4array_set(arrayname text, idx int4, value int4)
+\verbatim
+function veil.int4array_set(arrayname text, idx int4, value int4) returns int4
+\endverbatim
+Set the value of an element in an int array.  Implemented by
+C function veil_int4array_set().
 
-\section API-intarray-get veil_int4array_get(text, int4)
-\code
-function veil_int4array_get(text, int4) returns int4
-\endcode
-Get the value of an element from an int array.
+\section API-intarray-get int4array_get(arrayname text, idx int4)
+\verbatim
+function int4array_get(arrayname text, idx int4) returns int4
+\endverbatim
+Get the value of an element from an int array.  Implemented by
+C function veil_int4array_get().
 
 Next: \ref API-serialisation
 */
@@ -886,34 +947,35 @@ The following functions comprise the Veil serialisatation API:
 - <code>\ref API-serialize</code>
 - <code>\ref API-deserialize</code>
 
-\section API-serialise veil_serialise(text)
-\code
-function veil_serialise(text) returns text
-\endcode
+\section API-serialise serialise(varname text)
+\verbatim
+function veil.serialise(varname text) returns text
+\endverbatim
 This creates a serialised textual representation of the named session
 variable.  The results of this function may be concatenated into a
 single string, which can be deserialised in a single call to
-veil_deserialise()
+veil_deserialise().  Implemented by C function veil_serialise().
 
-\section API-deserialise veil_deserialise(text)
-\code
-function veil_deserialise(text) returns text
-\endcode
+\section API-deserialise deserialise(stream text)
+\verbatim
+function veil.deserialise(stream text) returns text
+\endverbatim
 This takes a serialised representation of one or more variables as
 created by concatenating the results of veil_serialise(), and
 de-serialises them, creating new variables as needed and resetting their
-values to those they had when they were serialised.
+values to those they had when they were serialised.  Implemented by C
+function veil_deserialise().
 
-\section API-serialize veil_serialize(text)
-\code
-function veil_serialize(text) returns text
-\endcode
+\section API-serialize serialize(varname text)
+\verbatim
+function veil.serialize(varname text) returns text
+\endverbatim
 Synonym for veil_serialise()
 
-\section API-deserialize veil_deserialize(text)
-\code
-function veil_deserialize(text) returns text
-\endcode
+\section API-deserialize deserialize(stream text)
+\verbatim
+function veil.deserialize(stream text) returns text
+\endverbatim
 Synonym for veil_deserialise()
 
 Next: \ref API-control
@@ -930,41 +992,78 @@ place.  All subsequent transactions will see the new set.
 
 The following functions comprise the Veil control functions API:
 
+- <code>\ref API-control-registered-init</code>
 - <code>\ref API-control-init</code>
 - <code>\ref API-control-reset</code>
-- <code>\ref API-control-force</code>
 - <code>\ref API-version</code>
 
-\section API-control-init veil_init(bool)
-\code
-function veil_init(bool) returns bool
-\endcode
-This function must be redefined by the application.  The default
-installed version simply raises an error telling you to redefine it.
-See \ref Implementation for a more detailed description of this function.
+\section API-control-registered-init registered initialisation functions
+
+A registered initialisation function is one which will be called from
+the standard veil \ref API-control-init function.  Such functions are
+responsible for defining and, usually, initialising shared variables.
+
+Initialisation functions may be written in any language supported by
+PostgreSQL, and must conform to the following function prototype:
+
+\verbatim
+function init_function(doing_reset bool) returns bool
+\endverbatim
+
+The <code>doing_reset</code> parameter will be set to true if we are
+completely resetting veil and redefining all of its variables.  In this
+case, we must declare and, probably, initialise shared variables prior to 
+any session initialisation actions.  The parameter will be false, if the
+function is solely being called to initialise a new session.  Check \ref
+demo-sec for an example. 
+
+Initialisation functions are registered by inserting their name into
+the configuration table <code>veil.veil_init_fns</code>.  The functions
+listed in this table are executed in order of the <code>priority</code>
+column.  Eg, to register <code>veil.init_roles()</code> to execute
+before <code>veil.init_role_privs()</code>, we would use the following
+insert statement:
+
+\verbatim
+insert into veil.veil_init_fns
+       (fn_name, priority)
+values ('veil.init_roles', 1),
+       ('veil.init_role_privs', 2);
+\endverbatim
+
+\section API-control-init veil_init(doing_reset bool)
+\verbatim
+function veil.veil_init(doing_reset bool) returns bool
+\endverbatim
+
+This function, implemented by the C function veil_init(), is reponsible
+for initialising each veil session.  The <code>doing_reset</code>
+parameter is true if we are to completely reset Veil, redefining all
+shared variables.
+
+The builtin implementation of veil_init() will call each registered
+initialisation function (see \ref API-control-registered-init) in turn.
+
+If no initialisation functions are registered, veil_init() raises an
+exception.
+
+As an alternative to registering initialisation functions, a Veil-based
+application may instead simply redefine veil.veil_init(), though this
+usage is deprecated.
 
 \section API-control-reset veil_perform_reset()
-\code
-function veil_perform_reset() returns bool
-\endcode
-This is used to reset Veil's shared variables.  It causes veil_init() to
-be called.
+\verbatim
+function veil.veil_perform_reset() returns bool
+\endverbatim
+This is used to reset Veil's shared variables.  It causes \ref
+API-control-init to be called.  Implemented by C function veil_perform_reset().
 
-\section API-control-force veil_force_reset(bool)
-\code
-function veil_force_reset() returns bool
-\endcode
-In the event of veil_perform_reset() failing to complete and leaving
-shared variables in a state of limbo, this function may be called to
-force the reset.  After forcing the reset, this function raises a panic
-which will reset the database server.  Use this at your peril.
-
-\section API-version veil_version()
-\code
-function veil_version() returns text
-\endcode
+\section API-version version()
+\verbatim
+function veil.version() returns text
+\endverbatim
 This function returns a string describing the installed version of
-veil.
+veil.  Implemented by C function veil_version().
 
 Next: \ref Building
 
@@ -1103,16 +1202,35 @@ essentially 4 options:
 
 \subsection Implementation Implement the Initialisation Function
 
-The initialisation function \ref API-control-init is a critical
-function and must be defined.  It will be called by Veil, when the first
-in-built Veil function is invoked.  It is responsible for three distinct
-tasks:
+Proper initialisation of veil is critical.  There are two ways to manage
+this.  The traditional way is to write your own version of \ref
+API-control-init, replacing the supplied version.  The newer, better,
+alternative is to register your own initialisation functions in the
+table veil.veil_init_fns, and have the standard \ref API-control-init,
+call them.  If there are multiple initialisation functions, they are
+called in order of their priority values as specified in the table
+<code>veil.veil_init_fns</code>.
+
+The newer approach has a number of advantages:
+
+- it fully supports the PostgreSQL extension mechanism, allowing
+  extensions to be created and dropped;
+- it allows different security subsystems to have their own separate
+  initialisation routines, allowing more modular code and better
+  separation of responsibilities;
+- it is way cooler.
+
+Initialisation functions \ref API-control-init are critical elements.
+They will be called by automatically by Veil, when the first in-built
+Veil function is invoked.  Initialisation functions are responsible for
+three distinct tasks:
 
 - Initialisation of session variables
 - Initialisation of shared variables
 - Re-initialisation of variables during reset
 
-The boolean parameter to veil_init will be false on initial session
+The boolean parameter to veil_init (which is passed to registered
+initialisation functions) will be false on initial session
 startup, and true when performing a reset (\ref API-control-reset).
 
 Shared variables are created using \ref API-variables-share.  This
@@ -1120,16 +1238,16 @@ returns a boolean result describing whether the variable already
 existed.  If so, and we are not performing a reset, the current session
 need not initialise it.
 
-Session variables are simply created by referring to them.  It is worth
+Session variables are simply created by using them.  It is worth
 creating and initialising all session variables to "fix" their data
 types.  This will prevent other functions from misusing them.
 
-If the boolean parameter to veil_init is true, then we are performing a
-memory reset, and all shared variables should be re-initialised.  A
-memory reset will be performed whenever underlying, essentially static,
-data has been modified.  For example, when new privileges have been
-added, we must rebuild all privilege bitmaps to accommodate the new
-values.
+If the boolean parameter to an initialisation fuction is true, then we
+are performing a memory reset, and all shared variables should be
+re-initialised.  A memory reset will be performed whenever underlying,
+essentially static, data has been modified.  For example, when new
+privileges have been added, we must rebuild all privilege bitmaps to
+accommodate the new values.
 
 \subsection Implementation2 Implement the Connection Functions
 
@@ -1149,7 +1267,7 @@ the demo (\ref demo-sec) for a working example of this.
 \subsection Implementation3 Implement the Access Functions
 
 Access functions provide the low-level access controls to individual
-records.  As such their performance is critical.  It is generally better
+records.  As such, their performance is critical.  It is generally better
 to make the connection functions to more work, and the access functions
 less.  Bear in mind that if you perform a query that returns 10,000 rows
 from a table, your access function for that view is going to be called
@@ -1198,8 +1316,7 @@ user accounts.
 Note that the bulk of the code in a Veil application is in the
 definition of secured views and instead-of triggers, and that this code
 is all very similar.  Consider using a code-generation tool to implement
-this.  A suitable code-generator for Veil may be provided in subsequent
-releases.
+this. 
 
 Next: \ref Demo
 
@@ -1228,7 +1345,7 @@ a database containing the veil_demo application:
 - create a new database
 - connect to that database
 - execute <code>create extension veil;</code>
-- execute <code>create extension veil_demo;</code
+- execute <code>create extension veil_demo;</code>
 
 Next: \ref demo-model
 
@@ -1259,9 +1376,9 @@ contains those privileges.
 
 In this application there is a special role, <code>Personal
 Context</code> that contains the set of privileges that apply to all
-users in their personal context.  This role does not need to be
-explicitly assigned to users, and should probably never be explicitly
-assigned.
+users in their personal context.  Since all users have the same personal
+context privileges, the demo application provides this role to all users
+implicitly; there is no need for it to be explicitly assigned.
 
 Assignments of roles in the global context are made through
 person_roles, and in the project (relational) context through
@@ -1282,7 +1399,7 @@ table is currently left as an exercise for the reader.
 
 This describes each person.  A person is someone who owns data and who
 may connect to the database.  This table should contain authentication
-information etc.  In actuality it just maps a name to a person_id.
+information etc.  In the demo it just maps a name to a person_id.
 
 \subsection demo-projects Projects
 
@@ -1390,7 +1507,7 @@ Using your favourite tool connect to your veil_demo database.
 You will be able to see all of the demo views, both the secured views and
 the helpers.  But you will not initially be able to see any records:
 each view will appear to contain no data.  To gain some privileges you
-must identify yourself using the <code>connect_person()</code> function.
+must identify yourself using the \ref demo-code-connect-person function.
 
 There are 6 persons in the demo.  You may connect as any of them and see
 different subsets of data.  The persons are
@@ -1496,20 +1613,22 @@ Next: \ref demo-code
 
 */
 /*! \page demo-code The Demo Code
-\dontinclude funcs.sql
 \section demo-codesec The Code
-\subsection demo-code-veil-init veil_init(bool)
+\subsection demo-code-veil-init veil.veil_demo_init(performing_reset bool)
 
 This function is called at the start of each session, and whenever
 \ref API-control-reset is called.  The parameter, doing_reset, is
 false when called to initialise a session and true when called from
-veil_perform_reset().
+veil_perform_reset().  It is registered with \ref API-control-init
+through the <code>veil.veil_demo_init_fns</code> table which is created
+as an inherited table of <code>veil.veil_init_fns</code>.  By
+registering the initialisation functions using a veil_demo-specific
+inherited table, when the veil_demo extension is dropped, so is the
+registration data for \ref demo-code-veil-init.
 
-This definition replaces the standard default, do-nothing,
-implementation that is shipped with Veil (see \ref API-control-init).
-
-\skip veil_init(bool)
-\until veil_share(''det_types_privs'')
+\dontinclude veil_demo.sqs
+\skip veil_demo_init(doing
+\until init_reqd =
 
 The first task of veil_init() is to declare a set of Veil shared
 variables.  This is done by calling \ref API-variables-share.  This function
@@ -1520,6 +1639,8 @@ These variables are defined as shared because they will be identical for
 each session.  Making them shared means that only one session has to
 deal with the overhead of their initialisation.
 
+\dontinclude veil_demo.sqs
+\skip init_reqd =
 \until end if;
 
 We then check whether the shared variables must be initialised.  We will
@@ -1548,7 +1669,7 @@ initialisation and population is handled in much the same way as
 described above for Int4Arrays, using the functions \ref
 API-bmarray-init and \ref API-bmarray-setbit.
 
-\until end;
+\until language
 
 The final section of code defines and initialises a set of session
 variables.  These are defined here to avoid getting undefined variable
@@ -1563,15 +1684,15 @@ must have no privileges on the base objects, or on the raw Veil
 functions themselves.  The only access to objects protected by Veil must
 be through user-defined functions and views.
 
-\subsection demo-code-connect-person connect_person(int4)
+\subsection demo-code-connect-person connect_person(_person_id int4)
 
 This function is used to establish a connection from a specific person.
 In a real application this function would be provided with some form of
 authentication token for the user.  For the sake of simplicity the demo
 allows unauthenticated connection requests.
 
-\skip connect_person(int4)
-\until end;
+\skip connect_person(_per
+\until language
 
 This function identifies the user, ensures that they have can_connect
 privilege.  It initialises the global_context bitmap to contain the
@@ -1579,94 +1700,89 @@ union of all privileges for each role the person is assigned through
 person_roles.  It also sets up a bitmap hash containing a bitmap of
 privileges for each project to which the person is assigned.
 
-\subsection demo-code-global-priv i_have_global_priv(int4)
+\subsection demo-code-global-priv i_have_global_priv(priv_id int4)
 
 This function is used to determine whether a user has a specified
 privilege in the global context.  It tests that the user is connected
-using <code>veil_int4_get()</code>, and then checks whether the
+using \ref API-basic-int4-get, and then checks whether the
 specified privilege is present in the <code>global_context</code>
 bitmap.
 
-\skip function i_have_global_priv(int4)
+\skip function i_have_global_priv(priv
 \until security definer;
 
 The following example shows this function in use by the secured view,
 <code>privileges</code>:
 
-\dontinclude views.sql
 \skip create view privileges
-\until i_have_global_priv(10004);
+\until grant
 
 The privileges used above are <code>select_privileges</code> (10001),
 <code>insert_privileges</code> (10002), <code>update_privileges</code>
 (10003), and <code>delete_privileges</code> (10004).
 
-\subsection demo-code-personal-priv i_have_personal_priv(int4, int4)
+\subsection demo-code-personal-priv i_have_personal_priv(priv_id int4, person_id int4)
 
 This function determines whether a user has a specified privilege to a
 specified user's data, in the global or personal contexts.  It performs
-the same tests as for <code>i_have_global_context()</code>.  If the user
+the same tests as for \ref demo-code-global-priv.  If the user
 does not have access in the global context, and the connected user is
 the same user as the owner of the data we are looking at, then we test
 whether the specified privilege exists in the <code>role_privs</code>
 bitmap array for the <code>Personal Context</code> role.
 
-\dontinclude funcs.sql
-\skip function i_have_personal_priv(int4, int4)
-\until end;
+\dontinclude veil_demo.sqs
+\skip function i_have_personal_priv(pr
+\until language
 
 Here is an example of this function in use from the persons secured view:
 
-\dontinclude views.sql
 \skip create view persons
-\until i_have_personal_priv(10013, person_id);
+\until grant
 
-\subsection demo-code-project-priv i_have_project_priv(int4, int4)
+\subsection demo-code-project-priv i_have_project_priv(priv_id int4, project_id int4)
 This function determines whether a user has a specified privilege in the
 global or project contexts.  If the user does not have the global
 privilege, we check whether they have the privilege defined in the
 project_context BitmapHash.
 
-\dontinclude funcs.sql
-\skip function i_have_project_priv(int4, int4)
-\until security definer;
+\dontinclude veil_demo.sqs
+\skip function i_have_project_priv(pr
+\until language
 
 Here is an example of this function in use from the instead-of insert
 trigger for the projects secured view:
 
-\dontinclude views.sql
 \skip create rule ii_projects 
 \until i_have_project_priv(10018, new.project_id);
 
-\subsection demo-code-proj-pers-priv i_have_proj_or_pers_priv(int4, int4, int4)
+\subsection demo-code-proj-pers-priv i_have_proj_or_pers_priv(priv_id int4, project_id int4, person_id int4)
 This function checks all privileges.  It starts with the cheapest check
 first, and short-circuits as soon as a privilege is found.
 
-\dontinclude funcs.sql
-\skip function i_have_proj_or_pers_priv(int4, int4, int4)
-\until security definer;
+\dontinclude veil_demo.sqs
+\skip function i_have_proj_or_pers_priv(
+\until language
 
 Here is an example of this function in use from the instead-of update
 trigger for the assignments secured view:
 
-\dontinclude views.sql
 \skip create rule ii_assignments 
 \until i_have_proj_or_pers_priv(10027, old.project_id, old.person_id);
 
-\subsection demo-code-pers-detail-priv i_have_person_detail_priv(int4, int4)
+\subsection demo-code-pers-detail-priv i_have_person_detail_priv(detail_id int4, person_id int4)
 This function is used to determine which types of person details are
 accessible to each user.  This provides distinct access controls to each
 attribute that may be recorded for a person.
 
-\dontinclude funcs.sql
-\skip function i_have_person_detail_priv(int4, int4)
-\until security definer;
+\dontinclude veil_demo.sqs
+\skip function i_have_person_detail_priv(
+\until language
 
 The function is shown in use, below, in the instead-of delete trigger
 for person_details.  Note that two distinct access functions are being
 used here.
 
-\dontinclude views.sql
 \skip create rule id_person_details
 \until i_have_person_detail_priv(old.detail_type_id, old.person_id);
 
@@ -1860,11 +1976,6 @@ The regression tests are all contained within the regress directory and
 are run by the regress.sh shell script.  Use the -h option to get
 fairly detailed help.
 
-\subsection Demodb_install Demo Database
-As with the regression tests, you will need to be a privileged database
-user to be able to create the demo database.  For more on installing the
-demo database see \ref demo-install.
-
 \subsection Debugging Debugging
 If you encounter problems with Veil, you may want to try building with
 debug enabled.  Define the variable VEIL_DEBUG on the make command line
@@ -1873,23 +1984,25 @@ to add extra debug code to the executable:
 $ make clean; make VEIL_DEBUG=1 all
 \endverbatim
 
-This is a new feature and not yet fully formed but is worth trying if
-Veil appears to be misbehaving.  If any of the debug code encounters a
-problem, ERRORs will be raised.
+This is a transient feature and not as pervasive as it could be.  If you
+need help with debugging please contact the author.
 
 Next: \ref History
 
 */
 /*! \page History History and Compatibility
 \section past Changes History
-\subsection v1_0 Version 1.0.0 (Stable) (2011-07-22)
-This is the first version of Veil to be considered production ready, and
+\subsection v1_0 Version 9.1.0 (Stable) (2011-07-22)
+This is the first version of Veil to be considered production ready and
 completely stable.  It is for use only with PostgreSQL 9.1.  Support for
 older versions of PostgreSQL has been removed in this version.
 
 Major changes include:
 - revamp of the build system to use PGXS and the new PostgreSQL 9.1
   extensions mechanism.  Veil is now built as an extension.
+- modification to the veil_init() mechanism, allowing custom
+  initialisation functions to be registered through the table
+  veil.veil_init_fns
 - removal of the old veil_trial mechanism, which allowed Veil to be
   tried out without fully installing it.  This has removed much
   unnecessary complexity.
@@ -2124,7 +2237,7 @@ pre-production versions will be removed from this documentation.
     <TD>-</TD>
   </TR>
   <TR>
-    <TD>1.0.0 (Stable)</TD>
+    <TD>9.1.0 (Stable)</TD>
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>

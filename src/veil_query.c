@@ -36,18 +36,6 @@ typedef bool (Fetch_fn)(HeapTuple, TupleDesc, void *);
 
 
 /**
- * Counter to assess depth of recursive spi calls, so that we can
- * sensibly and safely use spi_push and spi_pop when appropriate.
- */
-static int4 query_depth = 0;
-
-/**
- * State variable used to assess whther query_depth may have been left
- * in an invalid state following an error being raised.
- */
-static TransactionId connection_xid = 0;
-
-/**
  * If already connected in this session, push the current connection,
  * and get a new one.
  * We are already connected, if:
@@ -55,36 +43,28 @@ static TransactionId connection_xid = 0;
  * - and the current transaction id matches the saved transaction id
  */
 int
-vl_spi_connect(void)
+vl_spi_connect(bool *p_pushed)
 {
-	TransactionId xid = GetCurrentTransactionId();
-
-	if (query_depth > 0) {
-		if (xid == connection_xid) {
-			SPI_push();
-		}
-		else {
-			/* The previous transaction must have aborted without
-			 * resetting query_depth */
-			query_depth = 0;
-		}
+	int result = SPI_connect();
+	if (result == SPI_ERROR_CONNECT) {
+		SPI_push();
+		*p_pushed = TRUE;
+		return SPI_connect();
 	}
-
-	connection_xid = xid;
-	return SPI_connect();
+	*p_pushed = FALSE;
+	return result;
 }
 
 /**
  * Reciprocal function for vl_spi_connect()
  */
 int
-vl_spi_finish(void)
+vl_spi_finish(bool pushed)
 {
 	int spi_result = SPI_finish();
-	if (query_depth > 0) {
+	if (pushed) {
 		SPI_pop();
 	}
-
 	return spi_result;
 }
 
@@ -177,24 +157,26 @@ query(const char *qry,
       Fetch_fn process_row,
       void *fn_param)
 {
-    int    row;
-	int    fetched = 0;
+    int  row;
+	int  fetched;
+	int  processed = 0;
+	bool cntinue;
+	SPITupleTable *tuptab;
 
-	query_depth++;
     prepare_query(qry, nargs, argtypes, args, read_only, saved_plan);
-	
-	for(row = 0; row < SPI_processed; row++) {
-		fetched++;
+	fetched = SPI_processed;
+	tuptab = SPI_tuptable;
+	for(row = 0; row < fetched; row++) {
+		processed++;
 		/* Process a row using the processor function */
-		if (!process_row(SPI_tuptable->vals[row], 
-						 SPI_tuptable->tupdesc,
-						 fn_param)) 
-		{
+		cntinue = process_row(tuptab->vals[row], 
+							  tuptab->tupdesc,
+							  fn_param);
+		if (!cntinue) {
 			break;
 		}
 	}
-	query_depth--;
-    return fetched;
+    return processed;
 }
 
 
@@ -289,7 +271,6 @@ str_from_oid_query(const char *qry,
  * 
  * @result True if the database exists.
  */
-
 extern bool
 vl_db_exists(Oid db_id)
 {
@@ -300,3 +281,85 @@ vl_db_exists(Oid db_id)
 }
 
 
+/** 
+ * ::Fetch_fn function for executing registered veil_init() functions for
+ * ::query.
+ * \param tuple The row to be processed
+ * \param tupdesc Descriptor for the types of the fields in the tuple.
+ * \param p_param Pointer to a boolean value which is the value of the
+ * argument to the init function being called.
+ * \return true.  This allows ::query to process further rows.
+ */
+static bool
+exec_init_fn(HeapTuple tuple, TupleDesc tupdesc, void *p_param)
+{
+    char *col = SPI_getvalue(tuple, tupdesc, 1);
+	char *qry = palloc(strlen(col) + 15);
+	bool pushed;
+	bool result;
+	bool found;
+	int ok;
+
+	(void) sprintf(qry, "select %s(%s)", col, 
+				   *((bool *) p_param)? "true": "false");
+
+	ok = vl_spi_connect(&pushed);
+	if (ok != SPI_OK_CONNECT) {
+		ereport(ERROR,
+				(errcode(ERRCODE_INTERNAL_ERROR),
+				 errmsg("failed to execute exec_init_fn() (1)"),
+				 errdetail("SPI_connect() failed, returning %d.", ok)));
+	}
+
+	found = vl_bool_from_query(qry, &result);
+
+
+	ok = vl_spi_finish(pushed);
+	if (ok != SPI_OK_FINISH) {
+		ereport(ERROR,
+				(errcode(ERRCODE_INTERNAL_ERROR),
+				 errmsg("failed to execute exec_init_fn() (2)"),
+				 errdetail("SPI_finish() failed, returning %d.", ok)));
+	}
+
+    return true;
+}
+
+
+/** 
+ * Identify any registered init_functions and execute them.
+ * 
+ * @param param The boolean parameter to be passed to each init_function.
+ * 
+ * @result The number of init_functions executed.
+ */
+int
+vl_call_init_fns(bool param)
+{
+    Oid     argtypes[0];
+    Datum   args[0];
+	char   *qry = "select fn_name from veil.veil_init_fns order by priority";
+	bool    pushed;
+	int     rows;
+	int     ok;
+
+	ok = vl_spi_connect(&pushed);
+	if (ok != SPI_OK_CONNECT) {
+		ereport(ERROR,
+				(errcode(ERRCODE_INTERNAL_ERROR),
+				 errmsg("failed to execute vl_call_init_fns() (1)"),
+				 errdetail("SPI_connect() failed, returning %d.", ok)));
+	}
+
+	rows = query(qry, 0, argtypes, args, false, NULL, 
+				 exec_init_fn, (void *) &param);
+
+	ok = vl_spi_finish(pushed);
+	if (ok != SPI_OK_FINISH) {
+		ereport(ERROR,
+				(errcode(ERRCODE_INTERNAL_ERROR),
+				 errmsg("failed to execute vl_call_init_fns() (2)"),
+				 errdetail("SPI_finish() failed, returning %d.", ok)));
+	}
+    return rows;
+}

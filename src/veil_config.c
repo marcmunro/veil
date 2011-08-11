@@ -86,6 +86,47 @@ veil_shmem_context_size()
 }
 
 /** 
+ * Initialise Veil's use of GUC variables.
+ */
+void
+veil_config_init()
+{
+	static bool first_time = true;
+	if (!first_time) {
+		return;
+	}
+
+	DefineCustomIntVariable("veil.dbs_in_cluster",
+							"The number of databases within the cluster "
+							"that will be using veil (1)",
+							NULL,
+							&dbs_in_cluster,
+							1, 1, 16,
+							PGC_USERSET,
+							0, NULL, NULL, NULL);
+	DefineCustomIntVariable("veil.shared_hash_elems",
+							"The number of entries for shared variables in "
+							"each shared memory context (32)",
+							NULL,
+							&shared_hash_elems,
+							32, 32, 8192,
+							PGC_USERSET,
+							0, NULL, NULL, NULL);
+	DefineCustomIntVariable("veil.shmem_context_size",
+							"Size of each shared memory context",
+							"Size of each shared memory context in bytes.  "
+							"This cannot be increased without stopping "
+							"and restarting the database cluster.",
+							&shmem_context_size,
+							4096, 4096, 104857600,
+							PGC_USERSET,
+							0, NULL, NULL, NULL);
+
+	first_time = false;
+}
+
+
+/** 
  * Retrieve Veil's GUC variables for this session.
  */
 void
@@ -96,11 +137,11 @@ veil_load_config()
 		return;
 	}
 
-	dbs_in_cluster = atoi(GetConfigOption("veil.dbs_in_cluster", FALSE));
+	dbs_in_cluster = atoi(GetConfigOption("veil.dbs_in_cluster", FALSE, FALSE));
 	shared_hash_elems = atoi(GetConfigOption("veil.shared_hash_elems", 
-											 FALSE));
+											 FALSE, FALSE));
 	shmem_context_size = atoi(GetConfigOption("veil.shmem_context_size", 
-											  FALSE));
+											  FALSE, FALSE));
 	first_time = false;
 }
 

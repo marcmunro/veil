@@ -7,8 +7,8 @@
 #      License: BSD
 #
 
-directory       = 'extension/veil'
-default_version = '1.0'
+directory       = 'extension'
+default_version = '9.1'
 module_pathname = '$libdir/veil'
 superuser       = true
 relocatable     = false
