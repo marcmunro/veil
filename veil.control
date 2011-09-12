@@ -8,7 +8,7 @@
 #
 
 directory       = 'extension'
-default_version = '9.1'
+default_version = '9.1.0'
 module_pathname = '$libdir/veil'
 superuser       = true
 relocatable     = false
