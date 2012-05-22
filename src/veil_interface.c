@@ -2,7 +2,7 @@
  * @file   veil_interface.c
  * \code
  *     Author:       Marc Munro
- *     Copyright (c) 2005 - 2011 Marc Munro
+ *     Copyright (c) 2005 - 2012 Marc Munro
  *     License:      BSD
  *
  * \endcode
@@ -2340,7 +2340,7 @@ veil_init(PG_FUNCTION_ARGS)
 		ereport(ERROR,
 				(errcode(ERRCODE_INTERNAL_ERROR),
 				 errmsg("No user defined veil init functions found"),
-				 errhint("You must refefine veil.veil_init() or register your "
+				 errhint("You must redefine veil.veil_init() or register your "
 					 "own init functions in the veil.veil_init_fns table.")));
 	}
     PG_RETURN_BOOL(true);
