@@ -79,7 +79,7 @@ tarball:
 	@if test ! -r docs/html/index.html; then \
 	    echo "You may want to make the docs first"; fi
 	@mkdir -p $(VEIL_DIR)/src $(VEIL_DIR)/regress
-	@cp CO* LI* GNU* veil--*sql veil.control veil_demo* $(VEIL_DIR)
+	@cp CO* LI* GNU* veil.control veil_demo* $(VEIL_DIR)
 	@cp src/*akefile src/*.[cdh] src/*sqs $(VEIL_DIR)/src
 	@cp regress/*akefile regress/*.sh regress/*sql $(VEIL_DIR)/regress
 	@ln -s `pwd`/tools $(VEIL_DIR)/tools

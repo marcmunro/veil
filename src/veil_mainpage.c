@@ -3,7 +3,7 @@
  *
  *      Doxygen documentation root for Veil
  *
- *      Copyright (c) 2005 - 2011 Marc Munro
+ *      Copyright (c) 2005 - 2014 Marc Munro
  *      Author:  Marc Munro
  *	License: BSD
  *
@@ -11,7 +11,7 @@
 
 
 /*! \mainpage Veil
-\version 9.1.0 (Stable))
+\version 9.2.0 (Stable))
 \section license License
 BSD
 \section intro_sec Introduction
@@ -90,9 +90,6 @@ will raise an exception if the where clause encounters the username
 discover whether specific names appear in the database.
 
 This is not something that Veil is intended to, or is able to, prevent.
-Changes to the underlying query engine to attempt to plug such holes
-have been proposed, but they all have their limitations and are likely
-to lead to degraded performance.
 
 A more serious problem occurs if a user is able to create user defined
 functions as these can easily provide covert channels for leaking data.
@@ -130,6 +127,25 @@ purposes.
 - \subpage Feedback
 - \subpage Performance
 - \subpage Credits
+
+\subsection BetterNews Better News
+
+In the latest versions of PostgreSQL, some have been made in the area of
+security, particularly with respect to security functions and ensuring
+that untrusted functions may not leak data that should be hidden.
+
+Note that there are likely to be costs associated with some of these
+improvements, as the query engine will apply untrusted functions later
+in the query execution plan.  If those untrusted functions are used to
+significantly reduce the size of a dataset, moving their execution to
+later in the plan may have an adverse effect on performance.  For this
+reason, you should test and benchmark and decide for yourself whether
+there is a performance hit, and whether the value of improved security
+is worth any measured loss of performance.
+
+You are also advised to follow the progress of Row Level Security
+support in later versions of Postgres, as this may obviate your need for
+Veil.
 
 Next: \ref overview-page
 
@@ -1940,8 +1956,6 @@ postgresql.conf:
 \code
 shared_preload_libraries = '<path to shared library>/veil.so' 
 
-custom_variable_classes = 'veil'
-
 #veil.dbs_in_cluster = 1
 #veil.shared_hash_elems = 32
 #veil.shmem_context_size = 16384
@@ -1996,6 +2010,12 @@ Next: \ref History
 */
 /*! \page History History and Compatibility
 \section past Changes History
+\subsection v9_2 Version 9.2.0 (Stable) (2014-06-25)
+This version supports PostgreSQL V9.2.  
+
+Only documentation changes have been made.  This means that both this
+and the previous version support both postgres 9.1 and 9.2.
+
 \subsection v1_0 Version 9.1.0 (Stable) (2011-07-22)
 This is the first version of Veil to be considered production ready and
 completely stable.  It is for use only with PostgreSQL 9.1.  Support for
@@ -2095,7 +2115,7 @@ pre-production versions will be removed from this documentation.
 <TABLE>
   <TR>
     <TD rowspan=2>Veil version</TD>
-    <TD colspan=9>Postgres Version</TD>
+    <TD colspan=10>Postgres Version</TD>
   </TR>
   <TR>
     <TD>7.4</TD>
@@ -2107,12 +2127,14 @@ pre-production versions will be removed from this documentation.
     <TD>8.4</TD>
     <TD>9.0</TD>
     <TD>9.1</TD>
+    <TD>9.2</TD>
   </TR>
   <TR>
     <TD>0.9.0 Alpha</TD>
     <TD>1</TD>
     <TD>1</TD>
     <TD>1</TD>
+    <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
@@ -2131,6 +2153,7 @@ pre-production versions will be removed from this documentation.
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
+    <TD>-</TD>
   </TR>
   <TR>
     <TD>0.9.2 Alpha</TD>
@@ -2138,6 +2161,7 @@ pre-production versions will be removed from this documentation.
     <TD>1</TD>
     <TD>1</TD>
     <TD>2</TD>
+    <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
@@ -2155,6 +2179,7 @@ pre-production versions will be removed from this documentation.
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
+    <TD>-</TD>
   </TR>
   <TR>
     <TD>0.9.4 Alpha</TD>
@@ -2163,6 +2188,7 @@ pre-production versions will be removed from this documentation.
     <TD>1</TD>
     <TD>-</TD>
     <TD>3</TD>
+    <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
@@ -2179,6 +2205,7 @@ pre-production versions will be removed from this documentation.
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
+    <TD>-</TD>
   </TR>
   <TR>
     <TD>0.9.6 Alpha</TD>
@@ -2188,6 +2215,7 @@ pre-production versions will be removed from this documentation.
     <TD>-</TD>
     <TD>3</TD>
     <TD>3</TD>
+    <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
@@ -2203,6 +2231,7 @@ pre-production versions will be removed from this documentation.
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
+    <TD>-</TD>
   </TR>
   <TR>
     <TD>0.9.9 Beta</TD>
@@ -2213,6 +2242,7 @@ pre-production versions will be removed from this documentation.
     <TD>3</TD>
     <TD>3</TD>
     <TD>3</TD>
+    <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
   </TR>
@@ -2227,6 +2257,7 @@ pre-production versions will be removed from this documentation.
     <TD>3</TD>
     <TD>-</TD>
     <TD>-</TD>
+    <TD>-</TD>
   </TR>
   <TR>
     <TD>0.9.12 Beta</TD>
@@ -2239,6 +2270,7 @@ pre-production versions will be removed from this documentation.
     <TD>3</TD>
     <TD>3</TD>
     <TD>-</TD>
+    <TD>-</TD>
   </TR>
   <TR>
     <TD>9.1.0 (Stable)</TD>
@@ -2250,6 +2282,20 @@ pre-production versions will be removed from this documentation.
     <TD>-</TD>
     <TD>-</TD>
     <TD>-</TD>
+    <TD>Yes</TD>
+    <TD>Yes</TD>
+  </TR>
+  <TR>
+    <TD>9.2.0 (Stable)</TD>
+    <TD>-</TD>
+    <TD>-</TD>
+    <TD>-</TD>
+    <TD>-</TD>
+    <TD>-</TD>
+    <TD>-</TD>
+    <TD>-</TD>
+    <TD>-</TD>
+    <TD>Yes</TD>
     <TD>Yes</TD>
   </TR>
 </TABLE>
@@ -2299,7 +2345,7 @@ Now you invoke gdb with the path to the postgres binary and the pid for
 the backend, eg:
 
 \verbatim
-$ gdb /usr/lib/postgresql/9.1/bin/postgres 5444
+$ gdb /usr/lib/postgresql/9.2/bin/postgres 5444
 \endverbatim
 
 Hit c and Enter to get gdb to allow the session to continue.   Now,

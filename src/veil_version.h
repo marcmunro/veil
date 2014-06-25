@@ -2,7 +2,7 @@
  * @file   veil_version.h
  * \code
  *     Author:       Marc Munro
- *     Copyright (c) 2005 - 2012 Marc Munro
+ *     Copyright (c) 2005 - 2014 Marc Munro
  *     License:      BSD
  * 
  * \endcode
