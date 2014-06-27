@@ -297,7 +297,6 @@ exec_init_fn(HeapTuple tuple, TupleDesc tupdesc, void *p_param)
 	char *qry = palloc(strlen(col) + 15);
 	bool pushed;
 	bool result;
-	bool found;
 	int ok;
 
 	(void) sprintf(qry, "select %s(%s)", col, 
@@ -311,7 +310,7 @@ exec_init_fn(HeapTuple tuple, TupleDesc tupdesc, void *p_param)
 				 errdetail("SPI_connect() failed, returning %d.", ok)));
 	}
 
-	found = vl_bool_from_query(qry, &result);
+	(void) vl_bool_from_query(qry, &result);
 
 
 	ok = vl_spi_finish(pushed);

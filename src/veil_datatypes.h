@@ -83,7 +83,7 @@
  * Test the trailing canary in an array.
  */
 #define DBG_TEST_TRAILER(x, y)							\
-	if ((int) (x).y[(x).dbgelems] != DBG_CANARY) {		\
+	if ((uintptr_t) (x).y[(x).dbgelems] != DBG_CANARY) {		\
 		elog(ERROR, "trailing canary fault"); }
 
 /**
@@ -189,12 +189,12 @@ typedef struct Int4Var {
 
 /**
  * Subtype of Object for storing range values.  A range has an upper and
- * lower bound, both stored as int4s.  Nulls are not allowed.
+ * lower bound, both stored as int8s.  Nulls are not allowed.
  */
 typedef struct Range {
     ObjType type;		/**< This must have the value OBJ_RANGE */
-    int32   min;        /**< Lower limit for range. */
-    int32   max;        /**< Upper limit for range. */
+    int64   min;        /**< Lower limit for range. */
+    int64   max;        /**< Upper limit for range. */
 } Range;
 
 

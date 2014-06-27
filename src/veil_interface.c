@@ -147,7 +147,6 @@ ensure_init()
     bool  success = false;
 	TransactionId this_xid;
     int   ok;
-	HTAB *hash;
 	bool pushed;
     static bool done = false;
 	static TransactionId xid = 0;
@@ -167,8 +166,7 @@ ensure_init()
 					 errdetail("SPI_connect() failed, returning %d.", ok)));
         }
 
-		hash = vl_get_shared_hash();  /* Init all shared memory
-										 constructs */
+		(void) vl_get_shared_hash();  /* Init all shared memory constructs */
         (void) vl_bool_from_query("select veil.veil_init(FALSE)", &success);
 
         if (!success) {
@@ -687,35 +685,35 @@ veil_share(PG_FUNCTION_ARGS)
 
 PG_FUNCTION_INFO_V1(veil_init_range);
 /** 
- * veil_init_range(name text, min int4, max int4) returns int4
+ * veil_init_range(name text, min int8, max int8) returns int8
  * Initialise a Range variable called NAME constrained by MIN and MAX,
  * returning the number of  elements in the range.  Ranges may be
  * examined using the veil_range() function.
  *
  * @param fcinfo <code>name text</code> The name of the variable to
  * initialise.
- * <br><code>min int4</code> The min value of the range.
- * <br><code>max int4</code> The max value of the range.
- * @return <code>int4</code> The size of the range ((max - min) + 1).
+ * <br><code>min int8</code> The min value of the range.
+ * <br><code>max int8</code> The max value of the range.
+ * @return <code>int8</code> The size of the range ((max - min) + 1).
  */
 Datum
 veil_init_range(PG_FUNCTION_ARGS)
 {
-    int32     min;
-    int32     max;
+    int64     min;
+    int64     max;
     Range    *range;
     char     *name;
 
 	ensure_init();
     name = strfromtext(PG_GETARG_TEXT_P(0));
-    min = PG_GETARG_INT32(1);
-    max = PG_GETARG_INT32(2);
+    min = PG_GETARG_INT64(1);
+    max = PG_GETARG_INT64(2);
 
 	range = GetRange(name, true);
 
     range->min = min;
     range->max = max;
-    PG_RETURN_INT32(max + 1 - min);
+    PG_RETURN_INT64(max + 1 - min);
 }
 
 
@@ -728,12 +726,12 @@ veil_init_range(PG_FUNCTION_ARGS)
  * @return Composite (row) type datum containing the range elements.
  */
 static Datum 
-datum_from_range(int32 min, int32 max)
+datum_from_range(int64 min, int64 max)
 {
     static bool init_done = false;
     static TupleDesc tupdesc;
     static AttInMetadata *attinmeta;
-    TupleTableSlot *slot;
+    __attribute__ ((unused)) TupleTableSlot *slot;
     HeapTuple tuple;
     char **values;
 
@@ -759,7 +757,9 @@ datum_from_range(int32 min, int32 max)
     tuple = BuildTupleFromCStrings(attinmeta, values);
 	slot = TupleDescGetSlot(tupdesc);
 
-    /* make the tuple into a datum */
+    /* make the tuple into a datum - this seems to use slot, so any
+	 * compiler warning about slot being unused would seem to be
+	 * spurious.  Most odd. */
     return TupleGetDatum(slot, tuple);
 }
 

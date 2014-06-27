@@ -410,7 +410,6 @@ shmalloc_init(void)
 		MemContext *context1;
 		bool        found = false;
 		HTAB       *hash0;
-		HTAB       *hash1;
 		size_t      size;
 
 		size = veil_shmem_context_size();
@@ -480,7 +479,7 @@ shmalloc_init(void)
 
 			/* Set up both shared hashes */
 			hash0 = get_hash0();
-			hash1 = get_hash1();
+			(void) get_hash1();
 
 			/* Record the shmemctl structure in hash0 */
 			var = (VarEntry *) hash_search(hash0, (void *) "VEIL_SHMEMCTL",

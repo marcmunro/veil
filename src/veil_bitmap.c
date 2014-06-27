@@ -597,9 +597,8 @@ bool
 vl_BitmapHashHasKey(BitmapHash *bmhash,
 				    char *hashelem)
 {
-	VarEntry *var;
-	bool      found;
+	bool found;
 
-	var = hash_search(bmhash->hash, hashelem, HASH_FIND, &found);
+	(void) hash_search(bmhash->hash, hashelem, HASH_FIND, &found);
 	return found;
 }
