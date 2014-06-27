@@ -189,29 +189,45 @@ typedef struct Int4Var {
 
 /**
  * Subtype of Object for storing range values.  A range has an upper and
- * lower bound, both stored as int8s.  Nulls are not allowed.
+ * lower bound, both stored as int4s.  Nulls are not allowed.
  */
 typedef struct Range {
     ObjType type;		/**< This must have the value OBJ_RANGE */
-    int64   min;        /**< Lower limit for range. */
-    int64   max;        /**< Upper limit for range. */
+    int32   min;        /**< Lower limit for range. */
+    int32   max;        /**< Upper limit for range. */
 } Range;
 
 
+/* Bitmaps will be based on 64-bit integers if pointer types are 64-bit,
+ * unless FORCE_32_BIT is defined.
+ */
+#ifdef FORCE_32_BIT
+#undef USE_64_BIT
+#else
+#if (SIZEOF_VOID_P == 8)
+#define USE_64_BIT 1
+#else
+#undef USE_64_BIT
+#endif
+#endif
 
 /**
  * Gives the bitmask index for the bitzero value of a Bitmap.  This is
  * part of the "normalisation" process for bitmap ranges.  This process
  * allows unlike bitmaps to be more easily compared by forcing bitmap
- * indexes to be normalised around 32-bit word boundaries.  Eg, 2 bitmaps
- * with domains 1 to 50 and 3 to 55, will have identical bit patterns
- * for bits 3 to 50.
+ * indexes to be normalised around 32 or 64 bit word boundaries.  Eg, 2
+ * bitmaps with domains 1 to 50 and 3 to 55, will have identical bit
+ * patterns for bits 3 to 50.
  * 
  * @param x The bitzero value of a bitmap
  * 
  * @return The bitmask index representing x.
  */
+#ifdef USE_64_BIT
+#define BITZERO(x) (x & 0xffffffffffffffc0)
+#else
 #define BITZERO(x) (x & 0xffffffe0)
+#endif
 
 /**
  * Gives the bitmask index for the bitmax value of a bitmap.  See
@@ -221,7 +237,11 @@ typedef struct Range {
  *
  * @return The bitmask index representing x.
  */
+#ifdef USE_64_BIT
+#define BITMAX(x) (x | 0x3f)
+#else
 #define BITMAX(x) (x | 0x1f)
+#endif
 
 /**
  * Gives the index of a bit within the array of 32-bit words that
@@ -231,7 +251,11 @@ typedef struct Range {
  *
  * @return The array index of the bit.
  */
+#ifdef USE_64_BIT
+#define BITSET_ELEM(x) (x >> 6)
+#else
 #define BITSET_ELEM(x) (x >> 5)
+#endif
 
 /**
  * Gives the index into ::bitmasks for the bit specified in x.
@@ -240,7 +264,11 @@ typedef struct Range {
  *
  * @return The bitmask index
  */
+#ifdef USE_64_BIT
+#define BITSET_BIT(x) (x & 0x3f)
+#else
 #define BITSET_BIT(x) (x & 0x1f)
+#endif
 
 /**
  * Gives the number of array elements in a ::Bitmap that runs from
@@ -251,7 +279,11 @@ typedef struct Range {
  *
  * @return The number of elements in the bitmap.
  */
+#ifdef USE_64_BIT
+#define ARRAYELEMS(min,max) (((max - BITZERO(min)) >> 6) + 1)
+#else
 #define ARRAYELEMS(min,max) (((max - BITZERO(min)) >> 5) + 1)
+#endif
 
 
 /**
@@ -265,6 +297,11 @@ typedef struct Range {
  */
 #define MIN(a,b) ((a < b)? a: b)
 
+#ifdef USE_64_BIT
+typedef uint64 bm_int;
+#else
+typedef uint32 bm_int;
+#endif
 
 /**
  * Subtype of Object for storing bitmaps.  A bitmap is stored as an
@@ -280,7 +317,7 @@ typedef struct Bitmap {
 						 * store */
     int32   bitmax;		/**< The index of the highest bit the bitmap can
 						 * store */
-	uint32   bitset[EMPTY]; /**< Element zero of the array of int4 values
+	bm_int  bitset[EMPTY]; /**< Element zero of the array of int4 values
 						 * comprising the bitmap. */
 } Bitmap;
 

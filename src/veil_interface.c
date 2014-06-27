@@ -685,16 +685,16 @@ veil_share(PG_FUNCTION_ARGS)
 
 PG_FUNCTION_INFO_V1(veil_init_range);
 /** 
- * veil_init_range(name text, min int8, max int8) returns int8
+ * veil_init_range(name text, min int4, max int4) returns int4
  * Initialise a Range variable called NAME constrained by MIN and MAX,
  * returning the number of  elements in the range.  Ranges may be
  * examined using the veil_range() function.
  *
  * @param fcinfo <code>name text</code> The name of the variable to
  * initialise.
- * <br><code>min int8</code> The min value of the range.
- * <br><code>max int8</code> The max value of the range.
- * @return <code>int8</code> The size of the range ((max - min) + 1).
+ * <br><code>min int4</code> The min value of the range.
+ * <br><code>max int4</code> The max value of the range.
+ * @return <code>int4</code> The size of the range ((max - min) + 1).
  */
 Datum
 veil_init_range(PG_FUNCTION_ARGS)
@@ -706,14 +706,14 @@ veil_init_range(PG_FUNCTION_ARGS)
 
 	ensure_init();
     name = strfromtext(PG_GETARG_TEXT_P(0));
-    min = PG_GETARG_INT64(1);
-    max = PG_GETARG_INT64(2);
+    min = PG_GETARG_INT32(1);
+    max = PG_GETARG_INT32(2);
 
 	range = GetRange(name, true);
 
     range->min = min;
     range->max = max;
-    PG_RETURN_INT64(max + 1 - min);
+    PG_RETURN_INT32(max + 1 - min);
 }
 
 

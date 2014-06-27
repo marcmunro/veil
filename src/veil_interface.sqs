@@ -91,11 +91,11 @@ This is intended for interactive use for debugging purposes.';
 
 
 create or replace
-function veil.init_range(name text, min int4, max int4) returns int4
+function veil.init_range(name text, min int, max int) returns int
      as '@LIBPATH@', 'veil_init_range'
      language C stable strict;
 
-comment on function veil.init_range(text, int4, int4) is
+comment on function veil.init_range(text, int, int) is
 'Initialise a Range variable called NAME constrained by MIN and MAX.
 
 Return the number of  elements in the range.
@@ -140,11 +140,11 @@ Clear (set to zero) all bits in the named bitmap.';
 
 
 create or replace
-function veil.bitmap_setbit(bitmap_name text, bit_number int4) returns bool
+function veil.bitmap_setbit(bitmap_name text, bit_number int) returns bool
      as '@LIBPATH@', 'veil_bitmap_setbit'
      language C stable strict;
 
-comment on function veil.bitmap_setbit(text, int4) is
+comment on function veil.bitmap_setbit(text, int) is
 'In the Bitmap or BitmapRef identified by BITMAP_NAME, set the bit given by
 BIT_NUMBER.
 
@@ -154,11 +154,11 @@ Set to 1, the identified bit.';
 
 
 create or replace
-function veil.bitmap_clearbit(bitmap_name text, bit_number int4) returns bool
+function veil.bitmap_clearbit(bitmap_name text, bit_number int) returns bool
      as '@LIBPATH@', 'veil_bitmap_clearbit'
      language C stable strict;
 
-comment on function veil.bitmap_clearbit(text, int4) is
+comment on function veil.bitmap_clearbit(text, int) is
 'In the Bitmap or BitmapRef identified by BITMAP_NAME, clear the bit given by
 BIT_NUMBER.
 
@@ -168,11 +168,11 @@ Set to 0, the identified bit.';
 
 
 create or replace
-function veil.bitmap_testbit(bitmap_name text, bit_number int4) returns bool
+function veil.bitmap_testbit(bitmap_name text, bit_number int) returns bool
      as '@LIBPATH@', 'veil_bitmap_testbit'
      language C stable strict;
 
-comment on function veil.bitmap_testbit(text, int4) is
+comment on function veil.bitmap_testbit(text, int) is
 'In the Bitmap or BitmapRef identified by BITMAP_NAME, test the bit given by
 BIT_NUMBER.
 
@@ -205,7 +205,7 @@ Return TRUE, or raise an error.';
 
 
 create or replace
-function veil.bitmap_bits(bitmap_name text) returns setof int4
+function veil.bitmap_bits(bitmap_name text) returns setof int
      as '@LIBPATH@', 'veil_bitmap_bits'
      language C stable strict;
 
@@ -253,12 +253,12 @@ Return TRUE or raise an error';
 
 create or replace
 function veil.bitmap_from_array(bmref_name text, bmarray text, 
-	 			index int4) returns text
+	 			index int) returns text
      as '@LIBPATH@', 
 	'veil_bitmap_from_array'
      language C stable strict;
 
-comment on function veil.bitmap_from_array(text, text, int4) is
+comment on function veil.bitmap_from_array(text, text, int) is
 'Set BitmapRef BMREF_NAME to the bitmap from BMARRAY indexed by INDEX.
 
 Return the name of the BitmapRef.
@@ -271,12 +271,12 @@ the transaction they are defined.';
 
 create or replace
 function veil.bitmap_array_testbit(
-    bmarray text, arr_idx int4, bitno int4) returns bool
+    bmarray text, arr_idx int, bitno int) returns bool
      as '@LIBPATH@', 
 	'veil_bitmap_array_testbit'
      language C stable strict;
 
-comment on function veil.bitmap_array_testbit(text, int4, int4) is
+comment on function veil.bitmap_array_testbit(text, int, int) is
 'Test a bit in BMARRAY, from the bitmap indexed by ARR_IDX, checking the
 bit identified by BITNO.
 
@@ -285,12 +285,12 @@ Return TRUE if the bit is set, else FALSE';
 
 create or replace
 function veil.bitmap_array_setbit(
-    bmarray text, arr_idx int4, bitno int4) returns bool
+    bmarray text, arr_idx int, bitno int) returns bool
      as '@LIBPATH@', 
 	'veil_bitmap_array_setbit'
      language C stable strict;
 
-comment on function veil.bitmap_array_setbit(text, int4, int4) is
+comment on function veil.bitmap_array_setbit(text, int, int) is
 'Set a bit in BMARRAY, from the bitmap indexed by ARR_IDX, setting the
 bit identified by BITNO.
 
@@ -299,12 +299,12 @@ Return TRUE';
 
 create or replace
 function veil.bitmap_array_clearbit(
-    bmarray text, arr_idx int4, bitno int4) returns bool
+    bmarray text, arr_idx int, bitno int) returns bool
      as '@LIBPATH@', 
 	'veil_bitmap_array_clearbit'
      language C stable strict;
 
-comment on function veil.bitmap_array_clearbit(text, int4, int4) is
+comment on function veil.bitmap_array_clearbit(text, int, int) is
 'Clear a bit in BMARRAY, from the bitmap indexed by ARR_IDX, clearing the
 bit identified by BITNO.
 
@@ -313,12 +313,12 @@ Return TRUE';
 
 create or replace
 function veil.union_from_bitmap_array(
-    bitmap text, bmarray text, arr_idx int4) returns bool
+    bitmap text, bmarray text, arr_idx int) returns bool
      as '@LIBPATH@', 
 	'veil_union_from_bitmap_array'
      language C stable strict;
 
-comment on function veil.union_from_bitmap_array(text, text, int4) is
+comment on function veil.union_from_bitmap_array(text, text, int) is
 'Union BITMAP with BMARRAY[ARR_IDX], with the result going into bitmap.
 
 Return TRUE';
@@ -326,24 +326,24 @@ Return TRUE';
 
 create or replace
 function veil.intersect_from_bitmap_array(
-    bitmap text, bmarray text, arr_idx int4) returns bool
+    bitmap text, bmarray text, arr_idx int) returns bool
      as '@LIBPATH@', 
 	'veil_intersect_from_bitmap_array'
      language C stable strict;
 
-comment on function veil.intersect_from_bitmap_array(text, text, int4) is
+comment on function veil.intersect_from_bitmap_array(text, text, int) is
 'Intersect BITMAP with BMARRAY[ARR_IDX], with the result going into bitmap.
 
 Return TRUE';
 
 
 create or replace
-function veil.bitmap_array_bits(bmarray text, arr_idx int4) returns setof int4
+function veil.bitmap_array_bits(bmarray text, arr_idx int) returns setof int4
      as '@LIBPATH@', 
 	'veil_bitmap_array_bits'
      language C stable strict;
 
-comment on function veil.bitmap_array_bits(text, int4) is
+comment on function veil.bitmap_array_bits(text, int) is
 'Return all bits in the bitmap given by BMARRAY[ARR_IDX].
 
 This is primarily intended for interactive use: for debugging, etc.';
@@ -418,12 +418,12 @@ Return the name of BMREF.';
 
 
 create or replace
-function veil.bitmap_hash_testbit(bmhash text, key text, bitno int4) returns bool
+function veil.bitmap_hash_testbit(bmhash text, key text, bitno int) returns bool
      as '@LIBPATH@', 
 	'veil_bitmap_hash_testbit'
      language C stable strict;
 
-comment on function veil.bitmap_hash_testbit(text, text, int4) is
+comment on function veil.bitmap_hash_testbit(text, text, int) is
 'Test the bit, in the bitmap from BMHASH identified by KEY, given by
 BITNO.
 
@@ -431,12 +431,12 @@ Return TRUE if the bit is set, else FALSE.';
 
 
 create or replace
-function veil.bitmap_hash_setbit(bmhash text, key text, bitno int4) returns bool
+function veil.bitmap_hash_setbit(bmhash text, key text, bitno int) returns bool
      as '@LIBPATH@', 
 	'veil_bitmap_hash_setbit'
      language C stable strict;
 
-comment on function veil.bitmap_hash_setbit(text, text, int4) is
+comment on function veil.bitmap_hash_setbit(text, text, int) is
 'Set the bit, in the bitmap from BMHASH identified by KEY, given by
 BITNO to TRUE.
 
@@ -444,12 +444,12 @@ Return TRUE.';
 
 
 create or replace
-function veil.bitmap_hash_clearbit(bmhash text, key text, bitno int4) returns bool
+function veil.bitmap_hash_clearbit(bmhash text, key text, bitno int) returns bool
      as '@LIBPATH@', 
 	'veil_bitmap_hash_clearbit'
      language C stable strict;
 
-comment on function veil.bitmap_hash_clearbit(text, text, int4) is
+comment on function veil.bitmap_hash_clearbit(text, text, int) is
 'Set the bit, in the bitmap from BMHASH identified by KEY, given by
 BITNO to FALSE.
 
@@ -494,7 +494,7 @@ Return TRUE.';
 
 
 create or replace
-function veil.bitmap_hash_bits(bmhash text, key text) returns setof int4
+function veil.bitmap_hash_bits(bmhash text, key text) returns setof int
      as '@LIBPATH@', 
 	'veil_bitmap_hash_bits'
      language C stable strict;
@@ -524,25 +524,25 @@ comment on function veil.bitmap_hash_entries(text) is
 
 
 create or replace
-function veil.int4_set(name text, value int4) returns int4
+function veil.int4_set(name text, value int) returns int
      as '@LIBPATH@', 
 	'veil_int4_set'
      language C stable;
 
-comment on function veil.int4_set(text, int4) is
-'Set the int4 variable NAME to VALUE.
+comment on function veil.int4_set(text, int) is
+'Set the int variable NAME to VALUE.
 
 Return the new value';
 
 
 create or replace
-function veil.int4_get(name text) returns int4
+function veil.int4_get(name text) returns int
      as '@LIBPATH@', 
 	'veil_int4_get'
      language C stable strict;
 
 comment on function veil.int4_get(text) is
-'Return the value of int4 variable NAME.';
+'Return the value of int variable NAME.';
 
 
 create or replace
@@ -551,7 +551,7 @@ function veil.init_int4array(arrayname text, range text) returns bool
      language C stable strict;
 
 comment on function veil.init_int4array(text, text) is
-'Initialise the int4 array ARRAYNAME, with an index range of RANGE.
+'Initialise the int array ARRAYNAME, with an index range of RANGE.
 
 Each entry in the array is set to zero.
 
@@ -571,24 +571,24 @@ Return TRUE.';
 
 
 create or replace
-function veil.int4array_set(arrayname text, idx int4, value int4) returns int4
+function veil.int4array_set(arrayname text, idx int, value int) returns int
      as '@LIBPATH@', 
 	'veil_int4array_set'
      language C stable;
 
-comment on function veil.int4array_set(text, int4, int4) is
+comment on function veil.int4array_set(text, int, int) is
 'Set the ARRAYNAME element IDX to VALUE.
 
 Return the new value.';
 
 
 create or replace
-function veil.int4array_get(arrayname text, idx int4) returns int4
+function veil.int4array_get(arrayname text, idx int) returns int
      as '@LIBPATH@', 
 	'veil_int4array_get'
      language C stable strict;
 
-comment on function veil.int4array_get(text, int4) is
+comment on function veil.int4array_get(text, int) is
 'Return the value of ARRAYNAME element IDX.';
 
 
@@ -677,7 +677,7 @@ The value can be restored by de-serializing it.';
 
 
 create or replace
-function veil.deserialise(stream text) returns int4
+function veil.deserialise(stream text) returns int
      as '@LIBPATH@', 
 	'veil_deserialise'
      language C stable strict;
@@ -690,7 +690,7 @@ Return the number of items de-serialised.';
 
 -- Ditto for victims of webster.
 create or replace
-function veil.deserialize(stream text) returns int4
+function veil.deserialize(stream text) returns int
      as '@LIBPATH@', 
 	'veil_deserialise'
      language C stable strict;
@@ -703,30 +703,30 @@ Return the number of items de-serialized.';
 
 revoke execute on function veil.share(text) from public;
 revoke execute on function veil.veil_variables() from public;
-revoke execute on function veil.init_range(text, int4, int4) from public;
+revoke execute on function veil.init_range(text, int, int) from public;
 revoke execute on function veil.range(text) from public;
 
 revoke execute on function veil.init_bitmap(text, text) from public;
 revoke execute on function veil.clear_bitmap(text) from public;
-revoke execute on function veil.bitmap_setbit(text, int4) from public;
-revoke execute on function veil.bitmap_testbit(text, int4) from public;
+revoke execute on function veil.bitmap_setbit(text, int) from public;
+revoke execute on function veil.bitmap_testbit(text, int) from public;
 revoke execute on function veil.bitmap_bits(text) from public;
 revoke execute on function veil.bitmap_range(text) from public;
 
 revoke execute on function veil.init_bitmap_array(text, text, text)
   from public;
 revoke execute on function veil.clear_bitmap_array(text) from public;
-revoke execute on function veil.bitmap_from_array(text, text, int4)
+revoke execute on function veil.bitmap_from_array(text, text, int)
   from public;
-revoke execute on function veil.bitmap_array_setbit(text, int4, int4)
+revoke execute on function veil.bitmap_array_setbit(text, int, int)
   from public;
-revoke execute on function veil.bitmap_array_testbit(text, int4, int4)
+revoke execute on function veil.bitmap_array_testbit(text, int, int)
   from public;
-revoke execute on function veil.union_from_bitmap_array(text, text, int4)
+revoke execute on function veil.union_from_bitmap_array(text, text, int)
   from public;
-revoke execute on function veil.intersect_from_bitmap_array(text, text, int4)
+revoke execute on function veil.intersect_from_bitmap_array(text, text, int)
   from public;
-revoke execute on function veil.bitmap_array_bits(text, int4) from public;
+revoke execute on function veil.bitmap_array_bits(text, int) from public;
 revoke execute on function veil.bitmap_array_arange(text) from public;
 revoke execute on function veil.bitmap_array_brange(text) from public;
 
@@ -737,9 +737,9 @@ revoke execute on function veil.bitmap_hash_key_exists(text, text)
   from public;
 revoke execute on function veil.bitmap_from_hash(text, text, text)
   from public;
-revoke execute on function veil.bitmap_hash_setbit(text, text, int4)
+revoke execute on function veil.bitmap_hash_setbit(text, text, int)
   from public;
-revoke execute on function veil.bitmap_hash_testbit(text, text, int4)
+revoke execute on function veil.bitmap_hash_testbit(text, text, int)
   from public;
 revoke execute on function veil.union_into_bitmap_hash(text, text, text)
   from public;
@@ -753,8 +753,8 @@ revoke execute on function veil.bitmap_hash_entries(text) from public;
 
 revoke execute on function veil.init_int4array(text, text) from public;
 revoke execute on function veil.clear_int4array(text) from public;
-revoke execute on function veil.int4array_set(text, int4, int4) from public;
-revoke execute on function veil.int4array_get(text, int4) from public;
+revoke execute on function veil.int4array_set(text, int, int) from public;
+revoke execute on function veil.int4array_get(text, int) from public;
 
 revoke execute on function veil.veil_init(bool) from public;
 revoke execute on function veil.veil_perform_reset() from public;

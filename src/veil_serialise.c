@@ -30,7 +30,11 @@
 #define INT4VAR_HDR       'V'
 #define INT8VAR_HDR       '8'
 #define RANGE_HDR         'R'
+#ifdef USE_64_BIT
 #define BITMAP_HDR        'B'
+#else
+#define BITMAP_HDR        'M'
+#endif
 #define BITMAP_ARRAY_HDR  'A'
 #define BITMAP_HASH_HDR   'H'
 #define INT4_ARRAY_HDR    'I'
@@ -572,8 +576,8 @@ serialise_range(Range *range, char *name)
 
 	serialise_char(&stream, RANGE_HDR);
 	serialise_name(&stream, name);
-	serialise_int8(&stream, range->min);
-	serialise_int8(&stream, range->max);
+	serialise_int4(&stream, range->min);
+	serialise_int4(&stream, range->max);
 	return streamstart;
 }
 
@@ -602,8 +606,8 @@ deserialise_range(char **p_stream)
         range = (Range *) var->obj;
  	}
 
-	range->min = deserialise_int8(p_stream);
-	range->max = deserialise_int8(p_stream);
+	range->min = deserialise_int4(p_stream);
+	range->max = deserialise_int4(p_stream);
 	return var;
 }
 
@@ -621,7 +625,7 @@ serialise_one_bitmap(char **p_stream, Bitmap *bitmap)
     int elems = ARRAYELEMS(bitmap->bitzero, bitmap->bitmax);
 	serialise_int4(p_stream, bitmap->bitzero);
 	serialise_int4(p_stream, bitmap->bitmax);
-	serialise_stream(p_stream, elems * sizeof(int32), 
+	serialise_stream(p_stream, elems * sizeof(bm_int), 
 					 (char *) &(bitmap->bitset));
 }
 
@@ -639,7 +643,7 @@ serialise_bitmap(Bitmap *bitmap, char *name)
 {
     int elems = ARRAYELEMS(bitmap->bitzero, bitmap->bitmax);
     int stream_len = hdrlen(name) + (INT32SIZE_B64 * 2) + 
-		             streamlen(sizeof(int32) * elems) + 1;
+		             streamlen(sizeof(bm_int) * elems) + 1;
 	char *stream = palloc(stream_len * sizeof(char));
 	char *streamstart = stream;
 
@@ -723,7 +727,7 @@ serialise_bitmap_array(BitmapArray *bmarray, char *name)
     int bitset_elems = ARRAYELEMS(bmarray->bitzero, bmarray->bitmax);
     int array_elems = 1 + bmarray->arraymax - bmarray->arrayzero;
 	int bitmap_len = (INT32SIZE_B64 * 2) + 
-		             streamlen(sizeof(int32) * bitset_elems);
+		             streamlen(sizeof(bm_int) * bitset_elems);
     int stream_len = hdrlen(name) + (INT32SIZE_B64 * 4) + 
 		             (bitmap_len * array_elems) + 1;
 	int idx;

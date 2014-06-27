@@ -41,7 +41,11 @@ PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 
-override CFLAGS := $(CFLAGS) -O0
+ifneq ($(origin FORCE_32_BIT), undefined)
+DFORCE_32_BIT = -DFORCE_32_BIT=1
+endif
+
+override CFLAGS := $(CFLAGS) -O0 $(DFORCE_32_BIT)
 
 include $(DEPS)
 
