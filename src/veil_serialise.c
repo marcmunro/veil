@@ -28,6 +28,7 @@
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
 #define INT4VAR_HDR       'V'
+#define INT8VAR_HDR       '8'
 #define RANGE_HDR         'R'
 #define BITMAP_HDR        'B'
 #define BITMAP_ARRAY_HDR  'A'
@@ -39,7 +40,9 @@
 
 #define HDRLEN                 8   /* HDR field plus int32 for length of
 									* item */
-#define INT32SIZE_B64          7
+#define INT32SIZE_B64          7   /* Actually 8 but the last char is
+									* always '=' so we forget it. */
+#define INT64SIZE_B64          12
 #define BOOLSIZE               1
 
 
@@ -246,6 +249,43 @@ deserialise_int4(char **p_stream)
 	b64_decode(*p_stream, INT32SIZE_B64 + 1, (char *) &value);
 	*endpos = endchar;
 	(*p_stream) += INT32SIZE_B64;
+	return value;
+}
+
+/** 
+ * Serialise an int8 value as a base64 stream into *p_stream.
+ *
+ * @param p_stream Pointer into stream currently being written.  This
+ * must be large enought to take the contents to be written.  This
+ * pointer is updated to point to the next free slot in the stream after
+ * writing the int8 value, and is null terminated at that position.
+ * @param value The value to be written to the stream.
+ */
+static void
+serialise_int8(char **p_stream, int64 value)
+{
+	int len = b64_encode((char *) &value, sizeof(int64), *p_stream);
+	(*p_stream) += len; 
+	(**p_stream) = '\0';
+}
+
+
+/** 
+ * De-serialise an int8 value from a base64 character stream.
+ *
+ * @param p_stream Pointer into the stream currently being read.
+ * must be large enought to take the contents to be written.  This
+ * pointer is updated to point to the next free slot in the stream after
+ * reading the int8 value.
+ * @return the int8 value read from the stream
+ */
+static int64
+deserialise_int8(char **p_stream)
+{
+	int64 value;
+	fprintf(stderr, "Deserialise %s\n", *p_stream);
+	b64_decode(*p_stream, INT64SIZE_B64, (char *) &value);
+	(*p_stream) += INT64SIZE_B64;
 	return value;
 }
 
@@ -532,8 +572,8 @@ serialise_range(Range *range, char *name)
 
 	serialise_char(&stream, RANGE_HDR);
 	serialise_name(&stream, name);
-	serialise_int4(&stream, range->min);
-	serialise_int4(&stream, range->max);
+	serialise_int8(&stream, range->min);
+	serialise_int8(&stream, range->max);
 	return streamstart;
 }
 
@@ -562,8 +602,8 @@ deserialise_range(char **p_stream)
         range = (Range *) var->obj;
  	}
 
-	range->min = deserialise_int4(p_stream);
-	range->max = deserialise_int4(p_stream);
+	range->min = deserialise_int8(p_stream);
+	range->max = deserialise_int8(p_stream);
 	return var;
 }
 
