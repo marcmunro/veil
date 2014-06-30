@@ -106,7 +106,7 @@ copystr(char *str)
  * @return Dynamically allocated string.
  */
 static char *
-strfromint(int4 val)
+strfromint(int32 val)
 {
     char *new = palloc((sizeof(char) * 17)); /* Large enough for any 32 
 											  * bit number */
@@ -2495,7 +2495,7 @@ Datum
 veil_deserialise(PG_FUNCTION_ARGS)
 {
     char  *stream;
-	int4   result;
+	int32  result;
 	text  *txt;
 
     ensure_init();

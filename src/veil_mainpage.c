@@ -11,7 +11,7 @@
 
 
 /*! \mainpage Veil
-\version 9.2.0 (Stable))
+\version 9.3.0 (Stable))
 \section license License
 BSD
 \section intro_sec Introduction
@@ -130,9 +130,10 @@ purposes.
 
 \subsection BetterNews Better News
 
-In the latest versions of PostgreSQL, some have been made in the area of
-security, particularly with respect to security functions and ensuring
-that untrusted functions may not leak data that should be hidden.
+In the latest versions of PostgreSQL, some improvements have been made
+in the area of security, particularly with respect to security functions
+and ensuring that untrusted functions may not leak data that should be
+hidden.
 
 Note that there are likely to be costs associated with some of these
 improvements, as the query engine will apply untrusted functions later
@@ -145,7 +146,7 @@ is worth any measured loss of performance.
 
 You are also advised to follow the progress of Row Level Security
 support in later versions of Postgres, as this may obviate your need for
-Veil.
+Veil, or change the way in which you will use it.
 
 Next: \ref overview-page
 
@@ -1505,7 +1506,7 @@ personal context:
 - assignments
 - person_details
 
-\subsubsection demo-project-context Project Context
+\subsection demo-project-context Project Context
 The following tables may be accessed using rights assigned in the
 project context:
 - projects
@@ -1913,8 +1914,16 @@ To checkout from git, create a suitable directory and do:
  git clone git://github.com/marcmunro/veil.git
 \endverbatim
 
-An alternative repository is also available here:
-git@bloodnok.com:veil.git
+Alternative repositories are also available:
+\verbatim
+ git clone git://bloodnok.com/veil
+\endverbatim
+
+or
+\verbatim
+ git clone git@github.com:marcmunro/veil.git
+\endverbatim
+
 
 \subsection Pre-requisites Pre-requisites
 You must have a copy of the Postgresql header files available in order
@@ -1935,8 +1944,20 @@ To build the postgres extensions, simply run make with no target:
 $ make
 \endverbatim
 
+As part of figuring our the configuration, the makefile will attempt to
+work out which version of Postgres to build for.  If it fails to figure
+this out, add PG_VERSION=<x.y> to the make command.  eg:
+
+\verbatim
+$ make PG_VERSION="9.3"
+\endverbatim
+
 To build the veil documentation (the documentation you are now reading)
-use make docs.
+use:
+
+\verbatim
+$ make docs
+\endverbatim
 
 Note that the build system deliberately avoids using make recursively.
 Search the Web for "Recursive Make Considered Harmful" for the reasons
@@ -2010,6 +2031,18 @@ Next: \ref History
 */
 /*! \page History History and Compatibility
 \section past Changes History
+\subsection v9_3 Version 9.3.0 (Stable) (2014-06-30)
+This version supports PostgreSQL V9.3.
+
+It deals with the loss of the int4 C datatype, using int32 instead.  It
+also modifies its bitmap usage to use 64-bit integers on 64-bit
+architectures.    The older 32-bit version can be built by defining
+FORCE_32_BIT on the make command line, eg:
+
+\verbatim
+$ make all FORCE_32_BIT=1
+\endverbatim
+
 \subsection v9_2 Version 9.2.0 (Stable) (2014-06-25)
 This version supports PostgreSQL V9.2.  
 
@@ -2035,285 +2068,40 @@ Major changes include:
 - documentation changes, including improved comments for Veil
   functions.
 
-\subsection v9_12 Version 0.9.12 (2010-11-19)
-Release for compatibility with PostgreSQL V9.0.  Minor bugfixes and
-improvements to the build system.  Also added documentation about Veil's
-limitations.
-
-\subsection v9_11 Version 0.9.11 (2010-03-12)
-Bugfix release, fixing a serious memory corruption bug that has existed
-in all previous versions.  Users are strongly encouraged to avoid using
-older versions of Veil.
-
-The version number has been deliberatley bumped past 0.9.10 to emphasize
-that the last part of the version is a two digit number.
-
-\subsection v9_9 Version 0.9.9 (2009-07-06)
-New release to coincide with PostgreSQL V8.4.
-
-\subsection v9_8 Version 0.9.8 (2008-02-06)
-This is the first Beta release.  It incorporates a few bug fixes, a new
-serialisation API, improvements to the autoconf setup and makefiles, and
-some documentation improvements.  The status of Veil has been raised to
-Beta in recognition of its relative stability.
-
-\subsection v9_6 Version 0.9.6 (2008-02-06)
-This release has minor changes to support PostgreSQL 8.3.
-
-\subsection v9_5 Version 0.9.5 (2007-07-31)
-This is a bugifx release, fixing a memory allocation bug in the use of 
-bitmap_refs.  There are also fixes for minor typos, etc.
-
-\subsection v9_4 Version 0.9.4 (2007-02-21)
-This is a bugifx release, providing:
- - fix for major bug with recursive handling of spi connect, etc;
- - improvement to session initialisation code to do more up-front work
-   in ensure_init();
- - safer initialisation of malloc'd data structures;
- - improved error messages for shared memory exhaustion cases;
- - addition of debug code including canaries in data structures;
- - improvement to autoconf to better support Debian GNU/Linux, and OSX;
- - improvement to autoconf/make for handling paths containing spaces;
- - improvement to regression tests to better support OSX;
- - removal of spurious debug warning messages.
-
-\subsection v9_3 Version 0.9.3 (2006-10-31) 
-This version uses the new Postgres API for reserving shared memory for
-add-ins.  It also allows the number of Veil-enabled databases for a
-cluster to be configured, and refactors much of the shared memory code.
-A small fix for the Darwin makefile was also made.
-
-\subsection v9_2 Version 0.9.2 (2006-10-01) 
-This version was released to coincide with Postgres 8.2beta1 and first
-made use of new Postgres APIs to allow Veil to be a good Postgres
-citizen.  
-
-With prior versions of Veil, or prior versions of Postgres, Veil steals
-from Postgres the shared memory that it requires.  This can lead to the
-exhaustion of Postgres shared memory.
-
-Unfortunately, the Postgres API for shared memory reservation had to
-change follwing 8.2.beta1, and this version of Veil is therefore deprecated.
-
-\subsection v9_1 Version 0.9.1 (2006-07-04)
-This release fixed a small number of bugs and deficiencies:
-- major error in veil_perform_reset that prevented proper use of the two
-interdependant shared memory contexts
-- minor improvements in the build process to "configure" and friends
-- minor documentation improvements
-
-\subsection v9_0 Version 0.9.0  (2005-10-04) 
-This was the first public alpha release of Veil.
-
 \section forecast Change Forecast
 New versions will be released with each new major version of
-PostgreSQL.  Once there are three PostgreSQL versions for which Veil has
-been at production status, the change history and support matrix for for
-pre-production versions will be removed from this documentation.
+PostgreSQL.  
 
 \section compatibility Supported versions of Postgres
 <TABLE>
   <TR>
     <TD rowspan=2>Veil version</TD>
-    <TD colspan=10>Postgres Version</TD>
+    <TD colspan=3>Postgres Version</TD>
   </TR>
   <TR>
-    <TD>7.4</TD>
-    <TD>8.0</TD>
-    <TD>8.1</TD>
-    <TD>8.2beta1</TD>
-    <TD>8.2</TD>
-    <TD>8.3</TD>
-    <TD>8.4</TD>
-    <TD>9.0</TD>
     <TD>9.1</TD>
     <TD>9.2</TD>
-  </TR>
-  <TR>
-    <TD>0.9.0 Alpha</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.1 Alpha</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.2 Alpha</TD>
-    <TD>-</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>2</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.3 Alpha</TD>
-    <TD>-</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>-</TD>
-    <TD>3</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.4 Alpha</TD>
-    <TD>-</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>-</TD>
-    <TD>3</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.5 Alpha</TD>
-    <TD>-</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>-</TD>
-    <TD>3</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.6 Alpha</TD>
-    <TD>-</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>-</TD>
-    <TD>3</TD>
-    <TD>3</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.8 Beta</TD>
-    <TD>-</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>-</TD>
-    <TD>3</TD>
-    <TD>3</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.9 Beta</TD>
-    <TD>-</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>-</TD>
-    <TD>3</TD>
-    <TD>3</TD>
-    <TD>3</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.11 Beta</TD>
-    <TD>-</TD>
-    <TD>1</TD>
-    <TD>1</TD>
-    <TD>-</TD>
-    <TD>3</TD>
-    <TD>3</TD>
-    <TD>3</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-  </TR>
-  <TR>
-    <TD>0.9.12 Beta</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>3</TD>
-    <TD>3</TD>
-    <TD>3</TD>
-    <TD>-</TD>
-    <TD>-</TD>
+    <TD>9.3</TD>
   </TR>
   <TR>
     <TD>9.1.0 (Stable)</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
     <TD>Yes</TD>
     <TD>Yes</TD>
+    <TD>- </TD>
   </TR>
   <TR>
     <TD>9.2.0 (Stable)</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
-    <TD>-</TD>
     <TD>Yes</TD>
+    <TD>Yes</TD>
+    <TD>- </TD>
+  </TR>
+  <TR>
+    <TD>9.3.0 (Stable)</TD>
+    <TD>- </TD>
+    <TD>- </TD>
     <TD>Yes</TD>
   </TR>
 </TABLE>
-Notes:
-
-1) These combinations of Veil and Postgres provide no configuration
-   options for shared memory.  Veil's shared memory may be exhausted by
-   too many requests for large shared objects.  Furthermore, Postgres'
-   own shared memory may be easily exhausted by creating too many
-   Veil-using databases within a cluster.
-
-2) This version is deprecated
-
-3) These combinations of Veil and Postgres provide full configuration
-   options for shared memory usage, and Veil cooperates with Postgres
-   for the allocation of such memory meaning that it is not possible to
-   use Veil to exhaust Postgres' shared memory.  This is the minimum
-   Veil configuration recommended for production use.
 
 \section platforms Supported Platforms
 Veil should be buildable on any platform supported by PostgreSQL and

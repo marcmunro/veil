@@ -2,7 +2,7 @@
 #
 #      PGXS-based makefile for Veil
 #
-#      Copyright (c) 2005 - 2011 Marc Munro
+#      Copyright (c) 2005 - 2014 Marc Munro
 #      Author:  Marc Munro
 #      License: BSD
 #
@@ -37,7 +37,7 @@ ifneq "$(ALLDOCS)" ""
        DOCS = $(ALLDOCS)
 endif
 
-PG_CONFIG = pg_config
+PG_CONFIG := $(shell ./find_pg_config)
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
 
@@ -99,6 +99,7 @@ tarball_clean:
 
 # Ensure that tarball tmp files and dirs are removed by the clean target
 clean: tarball_clean
+	@rm -f PG_VERSION veil--*sql veil_demon--*sql
 
 # Install veil_demo as well as veil
 install: demo_install

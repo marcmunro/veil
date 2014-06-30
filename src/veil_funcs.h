@@ -134,5 +134,5 @@ extern Datum veil_deserialise(PG_FUNCTION_ARGS);
 
 /* veil_serialise */
 extern char *vl_serialise_var(char *name);
-extern int4 vl_deserialise(char **p_stream);
+extern int32 vl_deserialise(char **p_stream);
 extern VarEntry *vl_deserialise_next(char **p_stream);

@@ -226,7 +226,7 @@ hdrlen(char *name)
  * @param value The value to be written to the stream.
  */
 static void
-serialise_int4(char **p_stream, int4 value)
+serialise_int4(char **p_stream, int32 value)
 {
 	int len = b64_encode((char *) &value, sizeof(int32), *p_stream);
 	(*p_stream) += (len - 1);  /* X: dumb optimisation saves a byte */
@@ -243,10 +243,10 @@ serialise_int4(char **p_stream, int4 value)
  * reading the int4 value.
  * @return the int4 value read from the stream
  */
-static int4
+static int32
 deserialise_int4(char **p_stream)
 {
-	int4 value;
+	int32 value;
 	char *endpos = (*p_stream) + INT32SIZE_B64;
 	char endchar = *endpos;
 	*endpos = '=';	/* deal with dumb optimisation (X) above */
@@ -256,6 +256,7 @@ deserialise_int4(char **p_stream)
 	return value;
 }
 
+#ifdef UNUSED_BUT_WORKS
 /** 
  * Serialise an int8 value as a base64 stream into *p_stream.
  *
@@ -292,6 +293,7 @@ deserialise_int8(char **p_stream)
 	(*p_stream) += INT64SIZE_B64;
 	return value;
 }
+#endif
 
 /** 
  * Serialise a binary stream as a base64 stream into *p_stream.
@@ -304,7 +306,7 @@ deserialise_int8(char **p_stream)
  * @param instream The binary stream to be written.
  */
 static void
-serialise_stream(char **p_stream, int4 bytes, char *instream)
+serialise_stream(char **p_stream, int32 bytes, char *instream)
 {
 	int len = b64_encode(instream, bytes, *p_stream);
 	(*p_stream)[len] = '\0';
@@ -322,9 +324,9 @@ serialise_stream(char **p_stream, int4 bytes, char *instream)
  * the binary from p_stream is to be written.
  */
 static void
-deserialise_stream(char **p_stream, int4 bytes, char *outstream)
+deserialise_stream(char **p_stream, int32 bytes, char *outstream)
 {
-	int4 len = streamlen(bytes);
+	int32 len = streamlen(bytes);
 	b64_decode(*p_stream, len, outstream);
 	(*p_stream) += len;
 }
@@ -535,9 +537,9 @@ static VarEntry *
 deserialise_int4array(char **p_stream)
 {
 	char *name = deserialise_name(p_stream);
-    int4 arrayzero;
-	int4 arraymax;
-	int4 elems;
+    int32 arrayzero;
+	int32 arraymax;
+	int32 elems;
 	VarEntry *var = vl_lookup_variable(name);
 	Int4Array *array = (Int4Array *) var->obj;
 
@@ -553,7 +555,7 @@ deserialise_int4array(char **p_stream)
 	array = vl_NewInt4Array(array, var->shared, arrayzero, arraymax);
 	var->obj = (Object *) array;
 
-	deserialise_stream(p_stream, elems * sizeof(int4), 
+	deserialise_stream(p_stream, elems * sizeof(int32), 
 					   (char *) &(array->array[0]));
 	return var;
 }
@@ -670,9 +672,9 @@ deserialise_one_bitmap(Bitmap **p_bitmap, char *name,
 					   bool shared, char **p_stream)
 {
 	Bitmap *bitmap = *p_bitmap;
-    int4 bitzero;
-	int4 bitmax;
-	int4 elems;
+    int32 bitzero;
+	int32 bitmax;
+	int32 elems;
 
 	bitzero = deserialise_int4(p_stream);
 	bitmax = deserialise_int4(p_stream);
@@ -758,12 +760,12 @@ static VarEntry *
 deserialise_bitmap_array(char **p_stream)
 {
 	char *name = deserialise_name(p_stream);
-    int4 bitzero;
-	int4 bitmax;
-    int4 arrayzero;
-	int4 arraymax;
-    int4 array_elems;
-    int4 idx;
+    int32 bitzero;
+	int32 bitmax;
+    int32 arrayzero;
+	int32 arraymax;
+    int32 array_elems;
+    int32 idx;
 	VarEntry *var = vl_lookup_variable(name);
 	BitmapArray *bmarray = (BitmapArray *) var->obj;
 
@@ -865,8 +867,8 @@ deserialise_bitmap_hash(char **p_stream)
 {
 	char *name = deserialise_name(p_stream);
 	char *hashkey;
-    int4 bitzero;
-	int4 bitmax;
+    int32 bitzero;
+	int32 bitmax;
 	VarEntry *var = vl_lookup_variable(name);
 	BitmapHash *bmhash = (BitmapHash *) var->obj;
 	Bitmap *tmp_bitmap = NULL;
@@ -937,7 +939,7 @@ vl_serialise_var(char *name)
 						(errcode(ERRCODE_INTERNAL_ERROR),
 						 errmsg("Unsupported type for variable serialisation"),
 						 errdetail("Cannot serialise objects of type %d.", 
-								   (int4) var->obj->type)));
+								   (int32) var->obj->type)));
 				
 		}
 	}
@@ -990,7 +992,7 @@ vl_deserialise_next(char **p_stream)
  * @param **p_stream Pointer into the stream currently being read.
  * @return A count of the number of variables that have been de-serialised.
  */
-extern int4
+extern int32
 vl_deserialise(char **p_stream)
 {
 	int count = 0;
