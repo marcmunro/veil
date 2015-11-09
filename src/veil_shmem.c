@@ -2,7 +2,7 @@
  * @file   veil_shmem.c
  * \code
  *     Author:       Marc Munro
- *     Copyright (c) 2005 - 2011 Marc Munro
+ *     Copyright (c) 2005 - 2015 Marc Munro
  *     License:      BSD
  *
  * \endcode
@@ -79,16 +79,17 @@ static bool      prepared_for_switch = false;
 
 /**
  * The LWLock that Veil will use for managing concurrent access to
- * shared memory.  It is initialised to a lock id that is distinct
- * from any tha twill be dynamically allocated.
+ * shared memory.  It is initialised in _PG_init() to a lock id that is
+ * distinct from any that will be dynamically allocated.
  */
-static LWLockId  VeilLWLock = AddinShmemInitLock;
+static LWLockId  VeilLWLock;
 
 /**
  * The LWLock to be used while initially setting up shared memory and 
- * allocating a veil database-specific LWLock.
+ * allocating a veil database-specific LWLock.  Initialised in
+ * _PG_Init()
  */
-static LWLockId  InitialLWLock = AddinShmemInitLock;
+static LWLockId  InitialLWLock;
 
 /** 
  * Return the index of the other context from the one supplied.
@@ -103,15 +104,16 @@ static LWLockId  InitialLWLock = AddinShmemInitLock;
  * Veil's startup function.  This should be run when the Veil shared
  * library is loaded by postgres.
  * 
- * If shared_preload_libraries is not defined, Veil may still be run but
- * it will steal shared memory from postgres, potentially exhausting it.
- * 
  */
 void
 _PG_init()
 {
 	int veil_dbs;
 
+	/* See definitions of the following two variables, for comments. */
+	VeilLWLock = AddinShmemInitLock;
+	InitialLWLock = AddinShmemInitLock;
+	
 	/* Define GUCs for veil */
 	veil_config_init(); 
 	veil_dbs = veil_dbs_in_cluster();

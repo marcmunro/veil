@@ -3,7 +3,7 @@
  *
  *      Doxygen documentation root for Veil
  *
- *      Copyright (c) 2005 - 2014 Marc Munro
+ *      Copyright (c) 2005 - 2015 Marc Munro
  *      Author:  Marc Munro
  *	License: BSD
  *
@@ -11,7 +11,7 @@
 
 
 /*! \mainpage Veil
-\version 9.3.0 (Stable))
+\version 9.4.0 (Stable))
 \section license License
 BSD
 \section intro_sec Introduction
@@ -1949,7 +1949,7 @@ work out which version of Postgres to build for.  If it fails to figure
 this out, add PG_VERSION=<x.y> to the make command.  eg:
 
 \verbatim
-$ make PG_VERSION="9.3"
+$ make PG_VERSION="9.4"
 \endverbatim
 
 To build the veil documentation (the documentation you are now reading)
@@ -2031,6 +2031,11 @@ Next: \ref History
 */
 /*! \page History History and Compatibility
 \section past Changes History
+\subsection v9_4 Version 9.4.0 (Stable) (2015-11-09)
+This version supports PostgreSQL V9.4.
+
+Minor changes made to enable a build against the latest Postgres
+codebase.
 \subsection v9_3 Version 9.3.0 (Stable) (2014-06-30)
 This version supports PostgreSQL V9.3.
 
@@ -2070,23 +2075,26 @@ Major changes include:
 
 \section forecast Change Forecast
 New versions will be released with each new major version of
-PostgreSQL.  
+PostgreSQL if there is demand for them.  If you would like such a
+version, please ask.
 
 \section compatibility Supported versions of Postgres
 <TABLE>
   <TR>
     <TD rowspan=2>Veil version</TD>
-    <TD colspan=3>Postgres Version</TD>
+    <TD colspan=4>Postgres Version</TD>
   </TR>
   <TR>
     <TD>9.1</TD>
     <TD>9.2</TD>
     <TD>9.3</TD>
+    <TD>9.4</TD>
   </TR>
   <TR>
     <TD>9.1.0 (Stable)</TD>
     <TD>Yes</TD>
     <TD>Yes</TD>
+    <TD>- </TD>
     <TD>- </TD>
   </TR>
   <TR>
@@ -2094,9 +2102,18 @@ PostgreSQL.
     <TD>Yes</TD>
     <TD>Yes</TD>
     <TD>- </TD>
+    <TD>- </TD>
   </TR>
   <TR>
     <TD>9.3.0 (Stable)</TD>
+    <TD>- </TD>
+    <TD>- </TD>
+    <TD>Yes</TD>
+    <TD>- </TD>
+  </TR>
+  <TR>
+    <TD>9.4.0 (Stable)</TD>
+    <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>
     <TD>Yes</TD>

@@ -2,7 +2,7 @@
 #
 #      PGXS-based makefile for Veil
 #
-#      Copyright (c) 2005 - 2014 Marc Munro
+#      Copyright (c) 2005 - 2015 Marc Munro
 #      Author:  Marc Munro
 #      License: BSD
 #
@@ -74,7 +74,7 @@ deps:
 	$(MAKE) MAKEFLAGS="$(MAKEFLAGS)" make_deps
 
 # Define some variables for the following tarball targets.
-tarball tarball_clean: VEIL_DIR=veil_$(VEIL_VERSION)
+VEIL_DIR=veil_$(VEIL_VERSION)
 
 # Create a version numbered tarball of source (including deps), tools, 
 # and possibly docs.
@@ -93,13 +93,10 @@ tarball:
 	@tar czhf veil_$(VEIL_VERSION).tgz $(VEIL_DIR)
 	@rm -rf $(VEIL_DIR)
 
-# Cleanup after creating a tarball
-tarball_clean:
-	rm -rf $(VEIL_DIR) veil_$(VEIL_VERSION).tgz
-
 # Ensure that tarball tmp files and dirs are removed by the clean target
-clean: tarball_clean
-	@rm -f PG_VERSION veil--*sql veil_demon--*sql
+EXTRA_CLEAN = $(VEIL_DIR) regress.log $(DEPS) \
+	      PG_VERSION veil--*sql veil_demo--*sql \
+	      veil_$(VEIL_VERSION).tgz
 
 # Install veil_demo as well as veil
 install: demo_install

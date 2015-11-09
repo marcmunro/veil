@@ -2,7 +2,7 @@
 #
 #      Makefile for docs directory of Veil
 #
-#      Copyright (c) 2005 - 2011 Marc Munro
+#      Copyright (c) 2005 - 2015 Marc Munro
 #      Author:  Marc Munro
 #      License: BSD
 #
@@ -23,9 +23,6 @@ docs/html: $(SOURCES) $(HEADERS) demo/veil_demo.png
 	doxygen $(DOCS_DIR)/Doxyfile || \
 	    (echo "Doxygen fails: is it installed?"; exit 2)
 	@rm -f NO   # Don't know why this file is generated but it can go.
-
-# Clean this directory and ensure generated docs are removed
-clean: docs_clean
 
 docs_clean:
 	@echo Cleaning docs...

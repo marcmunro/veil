@@ -2,7 +2,7 @@
 #
 #      Makefile for src directory of Veil
 #
-#      Copyright (c) 2005 - 2011 Marc Munro
+#      Copyright (c) 2005 - 2015 Marc Munro
 #      Author:  Marc Munro
 #      License: BSD
 #
@@ -30,10 +30,9 @@ else
 endif
 
 INSTALLED_LIB = $(LIBDIR)/$(addsuffix $(DLSUFFIX), veil)
-TRIAL_LIB = $(BUILD_DIR)/$(addsuffix $(DLSUFFIX), veil_trial)
-VEIL_LIB = $(BUILD_DIR)/$(addsuffix $(DLSUFFIX), veil)
+TRIAL_LIB = $(addsuffix $(DLSUFFIX), veil_trial)
+VEIL_LIB = $(addsuffix $(DLSUFFIX), veil)
 HEADERS = $(wildcard src/*.h)
-SRC_CLEAN = $(VEIL_LIB)
 
 all: $(VEIL_CONTROL)
 
