@@ -82,14 +82,14 @@ static bool      prepared_for_switch = false;
  * shared memory.  It is initialised in _PG_init() to a lock id that is
  * distinct from any that will be dynamically allocated.
  */
-static LWLockId  VeilLWLock;
+static LWLockId  VeilLWLock = 0;
 
 /**
  * The LWLock to be used while initially setting up shared memory and 
  * allocating a veil database-specific LWLock.  Initialised in
  * _PG_Init()
  */
-static LWLockId  InitialLWLock;
+static LWLockId  InitialLWLock = 0;
 
 /** 
  * Return the index of the other context from the one supplied.
@@ -111,13 +111,14 @@ _PG_init()
 	int veil_dbs;
 
 	/* See definitions of the following two variables, for comments. */
+	fprintf(stderr, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 	VeilLWLock = AddinShmemInitLock;
 	InitialLWLock = AddinShmemInitLock;
 	
 	/* Define GUCs for veil */
 	veil_config_init(); 
 	veil_dbs = veil_dbs_in_cluster();
-
+	
 	/* Request a Veil-specific shared memory context */
 	RequestAddinShmemSpace(2 * veil_shmem_context_size() * veil_dbs);
 
@@ -406,6 +407,9 @@ vl_free(void *mem)
 static void
 shmalloc_init(void)
 {
+	VeilLWLock = AddinShmemInitLock;
+	InitialLWLock = AddinShmemInitLock;
+
 	if (!shared_meminfo) {
 		VarEntry   *var;
 		MemContext *context0;

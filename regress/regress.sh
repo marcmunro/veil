@@ -1162,8 +1162,10 @@ preload_library_message()
     if [ "x$1" = "x1" -o "x$1" = "x2" ]; then
 	echo "
 WARNING: The veil shared library is not defined in shared_preload_libraries 
-(which is defined in postgresql.conf) Without this definition Veil will not run
-"
+(which is defined in postgresql.conf) Without this definition you will be 
+unable to define veil.dbs_in_cluster, veil.shared_hash_elems, and 
+veil.shmem_context_size which will limit the amount of shared memory
+available to veil."
     elif [ "x$1" = "x3" ]; then
 	echo "
 WARNING: The version of veil.so in shared_preload_libraries (defined in
