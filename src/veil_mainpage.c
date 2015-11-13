@@ -11,7 +11,7 @@
 
 
 /*! \mainpage Veil
-\version 9.4.0 (Stable))
+\version 9.4.1 (Stable))
 \section license License
 BSD
 \section intro_sec Introduction
@@ -2031,7 +2031,14 @@ Next: \ref History
 */
 /*! \page History History and Compatibility
 \section past Changes History
+\subsection v9_4 Version 9.4.1 (Stable) (2015-11-12)
+This version supports PostgreSQL V9.4.
+
+Bugfix release to fix crash when shared_preload_libraries is defined.
+This is a critical fix, and version 9.4.0 is deprecated.
 \subsection v9_4 Version 9.4.0 (Stable) (2015-11-09)
+DEPRECATED
+
 This version supports PostgreSQL V9.4.
 
 Minor changes made to enable a build against the latest Postgres
@@ -2112,7 +2119,7 @@ version, please ask.
     <TD>- </TD>
   </TR>
   <TR>
-    <TD>9.4.0 (Stable)</TD>
+    <TD>9.4.1 (Stable)</TD>
     <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>

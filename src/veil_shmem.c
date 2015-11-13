@@ -111,7 +111,6 @@ _PG_init()
 	int veil_dbs;
 
 	/* See definitions of the following two variables, for comments. */
-	fprintf(stderr, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 	VeilLWLock = AddinShmemInitLock;
 	InitialLWLock = AddinShmemInitLock;
 	
