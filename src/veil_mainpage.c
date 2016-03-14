@@ -3,7 +3,7 @@
  *
  *      Doxygen documentation root for Veil
  *
- *      Copyright (c) 2005 - 2015 Marc Munro
+ *      Copyright (c) 2005 - 2016 Marc Munro
  *      Author:  Marc Munro
  *	License: BSD
  *
@@ -11,7 +11,7 @@
 
 
 /*! \mainpage Veil
-\version 9.4.1 (Stable))
+\version 9.5.0 (Stable))
 \section license License
 BSD
 \section intro_sec Introduction
@@ -2031,6 +2031,12 @@ Next: \ref History
 */
 /*! \page History History and Compatibility
 \section past Changes History
+\subsection v9_5 Version 9.5.0 (Stable) (2016-03-14)
+This version supports PostgreSQL V9.5.
+
+Only minor updates have been made to the documentation, version info,
+and the build system.
+
 \subsection v9_4 Version 9.4.1 (Stable) (2015-11-12)
 This version supports PostgreSQL V9.4.
 
@@ -2089,18 +2095,20 @@ version, please ask.
 <TABLE>
   <TR>
     <TD rowspan=2>Veil version</TD>
-    <TD colspan=4>Postgres Version</TD>
+    <TD colspan=5>Postgres Version</TD>
   </TR>
   <TR>
     <TD>9.1</TD>
     <TD>9.2</TD>
     <TD>9.3</TD>
     <TD>9.4</TD>
+    <TD>9.5</TD>
   </TR>
   <TR>
     <TD>9.1.0 (Stable)</TD>
     <TD>Yes</TD>
     <TD>Yes</TD>
+    <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>
   </TR>
@@ -2110,6 +2118,7 @@ version, please ask.
     <TD>Yes</TD>
     <TD>- </TD>
     <TD>- </TD>
+    <TD>- </TD>
   </TR>
   <TR>
     <TD>9.3.0 (Stable)</TD>
@@ -2117,9 +2126,19 @@ version, please ask.
     <TD>- </TD>
     <TD>Yes</TD>
     <TD>- </TD>
+    <TD>- </TD>
   </TR>
   <TR>
     <TD>9.4.1 (Stable)</TD>
+    <TD>- </TD>
+    <TD>- </TD>
+    <TD>- </TD>
+    <TD>Yes</TD>
+    <TD>- </TD>
+  </TR>
+  <TR>
+    <TD>9.5.0 (Stable)</TD>
+    <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>
@@ -2165,8 +2184,8 @@ reproduce the crash from your database session.  When the crash occurs,
 your gdb session will return to you.  Now type bt and Enter to get a
 backtrace. 
 
-If you wish to contact the author offlist, you can find him at his website
-http://bloodnok.com/Marc.Munro
+If you wish to contact the author offlist, you can contact him using
+mailto:marc@bloodnok.com
 
 Next: \ref Performance
 
