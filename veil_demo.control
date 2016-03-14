@@ -8,7 +8,7 @@
 #
 
 directory       = 'extension'
-default_version = '9.5.1'
+default_version = '9.5.0'
 superuser       = true
 relocatable     = false
 requires	= veil
