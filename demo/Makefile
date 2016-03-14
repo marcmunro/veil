@@ -2,7 +2,7 @@
 #
 #      Makefile for the demo database components
 #
-#      Copyright (c) 2005 - 2011 Marc Munro
+#      Copyright (c) 2005 - 2016 Marc Munro
 #      Author:  Marc Munro
 #      License: BSD
 #
@@ -25,10 +25,11 @@ DEMO_GARBAGE = $(garbage:%=$(DEMO_DIR)/%)
 # xml schema definition
 AUTOGRAPH_XSL = $(HOME)/bin/autograph.xsl
 AUTOGRAPH = $(XSLTPROC) --xinclude $(AUTOGRAPH_XSL)
+DOT2PNG = dot -Tpng 
 
 demo/veil_demo.png: demo/veil_demo.xml
-	$(AUTOGRAPH) demo/veil_demo.xml > demo/demo.dot
-	$(DOT) $@ demo/demo.dot
+	$(AUTOGRAPH) demo/veil_demo.xml >demo/demo.dot
+	$(DOT2PNG) demo/demo.dot >$@ || (rm $@; exit 2)
 	@rm -f demo/demo.dot
 
 # Clean this directory and ensure regression test db is removed.

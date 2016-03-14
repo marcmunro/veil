@@ -108,6 +108,8 @@ uninstall: demo_uninstall
 demo_uninstall:
 	$(MAKE) MAKEFLAGS=$(MAKEFLAGS) -f veil_demo.mk uninstall
 
+clean: docs_clean demo_clean
+
 # Provide a list of the targets buildable by this makefile.
 list help:
 	@echo -e "\n\

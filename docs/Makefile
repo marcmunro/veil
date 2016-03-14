@@ -19,14 +19,14 @@ DOCS_GARBAGE = $(garbage:%=$(DOCS_DIR)/%)
 
 docs:	docs/html
 
-docs/html: $(SOURCES) $(HEADERS) demo/veil_demo.png
+docs/html: $(SOURCES) $(HEADERS) 
 	doxygen $(DOCS_DIR)/Doxyfile || \
 	    (echo "Doxygen fails: is it installed?"; exit 2)
 	@rm -f NO   # Don't know why this file is generated but it can go.
 
 docs_clean:
 	@echo Cleaning docs...
-	@rm -f $(DOCS_GARBAGE) NO
+	@rm -f $(DOCS_GARBAGE) NO $(DOCS_DIR)/doxygen_sqlite3.db
 	@rm -rf $(DOCS_DIR)/html
 
 docs_distclean: docs_clean
