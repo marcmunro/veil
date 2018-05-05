@@ -2,13 +2,13 @@
 #
 #      Postgres extension control file for Veil
 #
-#      Copyright (c) 2011 - 2016 Marc Munro
+#      Copyright (c) 2011 - 2018 Marc Munro
 #      Author:  Marc Munro
 #      License: BSD
 #
 
 directory       = 'extension'
-default_version = '9.5.0'
+default_version = '10.3.0'
 module_pathname = '$libdir/veil'
 superuser       = true
 relocatable     = false

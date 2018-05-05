@@ -2,7 +2,7 @@
  * @file   veil_shmem.c
  * \code
  *     Author:       Marc Munro
- *     Copyright (c) 2005 - 2015 Marc Munro
+ *     Copyright (c) 2005 - 2018 Marc Munro
  *     License:      BSD
  *
  * \endcode
@@ -46,7 +46,7 @@
  *  - We look up variable "x" in the current hash, and if we have to
  *    allocate space for it, allocate it from the current context.
  *
- * Note that We use a dynamicall allocated LWLock, VeilLWLock to protect
+ * Note that We use a dynamically allocated LWLock, VeilLWLock to protect
  * our shared control structures.
  * 
  */
@@ -100,6 +100,38 @@ static LWLockId  InitialLWLock = 0;
  */
 #define OTHER_CONTEXT(x) 	(x ? 0: 1)
 
+/**
+ * The MemContext that we use to manage our tranche of LWLocks
+ */
+static MemContext *lwlock_context;
+
+/**
+ * Name of tranche of LWLocks used by veil.
+ */
+static char *TRANCHE_NAME = "veil";
+
+/**
+ * Return the next LWLock from our tranche.
+ * Note that locking is the responsibility of the caller.
+ */
+static LWLock *
+NextLWLock()
+{
+	// TODO: Ensure we don't exceed the number of locks in our tranche
+	if (lwlock_context->lwlock_idx > 0) {
+		lwlock_context->lwlock_idx--;
+	}
+	else {
+		// Error
+		ereport(ERROR,
+				(errcode(ERRCODE_INTERNAL_ERROR),
+				 errmsg("veil: out of LWLocks")));
+	}
+	return
+		&(lwlock_context->lwlock_tranche[lwlock_context->lwlock_idx].lock);
+}
+
+
 /** 
  * Veil's startup function.  This should be run when the Veil shared
  * library is loaded by postgres.
@@ -121,8 +153,8 @@ _PG_init()
 	/* Request a Veil-specific shared memory context */
 	RequestAddinShmemSpace(2 * veil_shmem_context_size() * veil_dbs);
 
-	/* Request a LWLock for later use by all backends */
-	RequestAddinLWLocks(veil_dbs);
+	/* Request LWLocks for later use by all backends */
+	RequestNamedLWLockTranche(TRANCHE_NAME, veil_dbs);
 }
 
 /** 
@@ -237,6 +269,15 @@ get_shmem_context(char   *name,
 			context->next = sizeof(MemContext);
 			context->limit = size;
 			context->lwlock = VeilLWLock;
+
+			if (i == 0) {
+				/* This context is the very first MemContext for the
+				 * cluster: this is the one used to manage our LWLocks
+				 * tranche. */
+				context->lwlock_tranche = GetNamedLWLockTranche(TRANCHE_NAME);
+				context->lwlock_idx = max_dbs;
+				lwlock_context = context;
+			}
 			return context;
 		}
 	}
@@ -399,6 +440,7 @@ vl_free(void *mem)
 }
 
 
+
 /** 
  * Attach to, creating and initialising as necessary, the shared memory
  * control structure.  Record this for the session in shared_meminfo.
@@ -449,7 +491,7 @@ shmalloc_init(void)
 			else {
 				/* Allocate new LWLock for this new shared memory
 				 * context */
-				VeilLWLock = LWLockAssign(); 
+				VeilLWLock = NextLWLock(); 
 			}
 			/* Record the lock id in context0 (for possible re-use if
 			 * the current database is dropped and a new veil-using

@@ -3,7 +3,7 @@
  *
  *      Doxygen documentation root for Veil
  *
- *      Copyright (c) 2005 - 2016 Marc Munro
+ *      Copyright (c) 2005 - 2018 Marc Munro
  *      Author:  Marc Munro
  *	License: BSD
  *
@@ -2031,6 +2031,15 @@ Next: \ref History
 */
 /*! \page History History and Compatibility
 \section past Changes History
+\subsection v10_3 Version 10.3.0 (Stable) (2018-05-04)
+This version supports PostgreSQL V10.3.
+
+This was updated following a report of being unable to build veil for
+Postgres 10.3.  This was the result of changes made in postgres after
+version 9.5, to change the way that LWlocks are handled.  This version
+of veil may work for earlier versions of Postgres 10.x but has not been
+tested.
+
 \subsection v9_5 Version 9.5.0 (Stable) (2016-03-14)
 This version supports PostgreSQL V9.5.
 
@@ -2095,7 +2104,7 @@ version, please ask.
 <TABLE>
   <TR>
     <TD rowspan=2>Veil version</TD>
-    <TD colspan=5>Postgres Version</TD>
+    <TD colspan=7>Postgres Version</TD>
   </TR>
   <TR>
     <TD>9.1</TD>
@@ -2103,11 +2112,15 @@ version, please ask.
     <TD>9.3</TD>
     <TD>9.4</TD>
     <TD>9.5</TD>
+    <TD>10.x (x < 3)</TD>
+    <TD>10.3</TD>
   </TR>
   <TR>
     <TD>9.1.0 (Stable)</TD>
     <TD>Yes</TD>
     <TD>Yes</TD>
+    <TD>- </TD>
+    <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>
@@ -2119,12 +2132,16 @@ version, please ask.
     <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>
+    <TD>- </TD>
+    <TD>- </TD>
   </TR>
   <TR>
     <TD>9.3.0 (Stable)</TD>
     <TD>- </TD>
     <TD>- </TD>
     <TD>Yes</TD>
+    <TD>- </TD>
+    <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>
   </TR>
@@ -2135,6 +2152,8 @@ version, please ask.
     <TD>- </TD>
     <TD>Yes</TD>
     <TD>- </TD>
+    <TD>- </TD>
+    <TD>- </TD>
   </TR>
   <TR>
     <TD>9.5.0 (Stable)</TD>
@@ -2142,6 +2161,18 @@ version, please ask.
     <TD>- </TD>
     <TD>- </TD>
     <TD>- </TD>
+    <TD>Yes</TD>
+    <TD>- </TD>
+    <TD>- </TD>
+  </TR>
+  <TR>
+    <TD>10.3 (Stable)</TD>
+    <TD>- </TD>
+    <TD>- </TD>
+    <TD>- </TD>
+    <TD>- </TD>
+    <TD>- </TD>
+    <TD>? </TD>
     <TD>Yes</TD>
   </TR>
 </TABLE>

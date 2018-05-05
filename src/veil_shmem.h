@@ -2,7 +2,7 @@
  * @file   veil_shmem.h
  * \code
  *     Author:       Marc Munro
- *     Copyright (c) 2005 - 2011 Marc Munro
+ *     Copyright (c) 2005 - 2018 Marc Munro
  *     License:      BSD
  * 
  * \endcode
@@ -56,12 +56,14 @@ typedef struct MemContext {
 								   * which this context was created,
 								   * or by which it has been taken
 								   * over. */
-	LWLockId  lwlock;             /**< The LWLock associated with this
+	LWLock   *lwlock;             /**< The LWLock associated with this
 								   *  memory context */
 	size_t    next;               /**< Offset of 1st free byte */
 	size_t    limit;              /**< Offset, of 1st byte beyond this 
 								   * struct */
-	
+	LWLockPadded *lwlock_tranche; /**< A tranche of lwlocks (only used in
+								   * the zeroth MemContext. */
+	int           lwlock_idx;     /**< Index into the above. */
 	struct ShmemCtl *memctl;      /**< Pointer to shared memory control
 								   * structure. */
     void     *memory[0];          /**< The rest of the chunk, from which
